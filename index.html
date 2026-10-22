@@ -340,7 +340,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const UIEV=(...a)=>{try{window.UI&&UI.ev&&UI.ev(...a)}catch(e){}};
 async function UIcp(){if(!window.UI)return true;while(UI.paused)await sleep(200);return !UI.cancelled}
 
-/* ---------- Content (HCPH workflow) ---------- */
+/* ---------- Content (Quest workflow) ---------- */
 const QUESTS=["Enable direct-CL cart on UAT","Fix PSGC Manila self-parent","Add a new brand on DEV",
   "Cut Commerce Layer calls per action","Cache product-display","Update checkout-flow docs",
   "Throttle background sync under 429"];
@@ -370,7 +370,7 @@ const STEPS=[
    who:{name:'Re-Mew',age:47,role:'Code Reviewer',bio:'Reads every diff twice, the second time with a monocle and a grudge. Purrs only at tiny PRs.',
      duties:['Review the diff before any push, no exceptions','Evict unrelated changes (looking at you, pom.xml)','Make sure QA-facing contracts stay unchanged']},
    cat:{body:'#a47551',outfit:'#3d8b7a',acc:['monocle']},
-   incident:{p:.4,title:'🧹 Diff contains pom.xml and hcph-docs-assistant/',text:'Those are someone else\'s unfinished changes.',
+   incident:{p:.4,title:'🧹 Diff contains pom.xml and docs-assistant/',text:'Those are someone else\'s unfinished changes.',
      opts:[['git add -A, ship it',0,'Rule 6: leave unrelated working-tree changes alone.'],
            ['Stage only this task\'s files',1,'Right: use a worktree and stage explicitly.']]}},
   {id:'git', name:'Push',icon:'📦',say:'Waiting for the boss to say "push"',log:'Push: feature → e2e/dev → dev',
@@ -385,7 +385,7 @@ const STEPS=[
    incident:{p:.35,title:'🔑 Publish fails: "RSA verification failed"',text:'After the deploy, author → public activation breaks.',
      opts:[['Redeploy until the error goes away',0,'Every deploy re-copies the key; it won\'t heal itself.'],
            ['Compare key sha256 per the runbook, resync publicKey',1,'Right: follow activation-keypair-runbook.']]},
-   gate:{title:'🔐 Permission to deploy?',text:'Deploy DEV only when the user allows it (no GitLab token here — a human presses the button). Main and production are never deployed by the cats.',ok:'Allow DEV deploy',no:'Not yet — cancel quest'}},
+   gate:{title:'🔐 Permission to deploy?',text:'Deploy DEV only when the user allows it (no deploy token here — a human presses the button). Main and production are never deployed by the cats.',ok:'Allow DEV deploy',no:'Not yet — cancel quest'}},
   {id:'qa',  name:'Verify',icon:'✅',say:'Never say "verified" without running it',log:'Running the Playwright suite on the environment',
    who:{name:'Testy',age:27,role:'QA Engineer',bio:'Trusts nothing that has not run twice. Has been known to click the same button 40 times, just in case.',
      duties:['Run the Playwright suite on the environment','Never say "verified" without running it','List the test data to clean up, no crumbs left behind']},
@@ -1711,7 +1711,7 @@ const JOKES=[
   ["Mèo không sợ merge conflict. Mèo sợ mỗi cái bồn tắm.","Cats don't fear merge conflicts. Only bathtubs."],
   ["Test xanh hết là có vấn đề. Test đỏ hết thì… cũng có vấn đề. Testy nói vậy.","All tests green is suspicious. All red is also suspicious. Testy says so."],
   ["Hỏi: bao nhiêu mèo để thay bóng đèn? Đáp: không cần, mèo chỉ đẩy nó rơi khỏi bàn.","How many cats to change a light bulb? None, they just knock it off the table."]];
-const topic=()=>L("Bạn thử hỏi: quy trình HCPH, ai làm bước nào, luật push/deploy, cách chơi, thang máy, thời tiết, âm thanh, hay kể chuyện cười nhé.","Try asking: the HCPH flow, who does which step, the push/deploy rules, how to play, the lift, weather, sound, or a joke.");
+const topic=()=>L("Bạn thử hỏi: quy trình Quest, ai làm bước nào, luật push/deploy, cách chơi, thang máy, thời tiết, âm thanh, hay kể chuyện cười nhé.","Try asking: the Quest flow, who does which step, the push/deploy rules, how to play, the lift, weather, sound, or a joke.");
 const profileOf=(who,role,bio,duties)=>`${who} — ${T(role)}\n${T(bio)}\n`+duties.map(d=>'• '+T(d)).join('\n');
 function sageAnswer(raw){
   const q=norm(raw);if(!q.trim())return topic();
@@ -1726,7 +1726,7 @@ function sageAnswer(raw){
    [/xin chao|^chao|\bhello\b|\bhi\b|\bhey\b|\balo\b/,()=>L("Ờ… chào bạn. Tôi là Mr Biết Tuốt, cụ mèo nằm trên nóc thang máy. Hỏi gì tôi cũng trả lời (kể cả khi tôi không biết).","Oh… hello. I'm Mr Know-It-All, the old cat lying on the lift roof. Ask me anything, even if I don't know.")],
    [/ban la ai|who are you|gioi thieu|mr biet tuot|know.it.all/,()=>L("Tôi là Mr Biết Tuốt, cụ mèo đen lười nhất và thông thái nhất văn phòng (tự phong). Tôi giải đáp về quy trình, các bé mèo, luật chơi và cách dùng game này.","I'm Mr Know-It-All, the laziest and wisest old black cat in the office (self-appointed). I answer questions about the workflow, the cats, the rules and how to use this game.")],
    [/claude that|ai that|real ai|chatbot|that khong|co phai ai|thong minh|offline|ket noi/,()=>L("Thành thật nhé: tôi là bot chạy ngay trong trang, trả lời theo kịch bản có sẵn, chưa kết nối Claude thật. Câu nào ngoài sổ tay thì tôi chịu thua.","Honestly: I'm a bot running inside this page with scripted answers, not connected to a real Claude yet. Anything outside my notebook beats me.")],
-   [/quy trinh|workflow|hcph|cac buoc|tam buoc|\bflow\b|\bsteps?\b|lam sao de/,()=>L("Quy trình HCPH có 8 bước:\n","The HCPH flow has 8 steps:\n")+STEPS.map((st,i)=>`${i+1}. ${st.icon} ${T(st.name)} — ${st.who.name}`).join('\n')+L("\nMỗi bước một mèo ngồi vào bàn, xong thì chuyền vé cho bạn kế tiếp.","\nEach step has one cat at the desk, then the ticket is passed on.")],
+   [/quy trinh|workflow|cac buoc|tam buoc|\bflow\b|\bsteps?\b|lam sao de/,()=>L("Quy trình Quest có 8 bước:\n","The Quest flow has 8 steps:\n")+STEPS.map((st,i)=>`${i+1}. ${st.icon} ${T(st.name)} — ${st.who.name}`).join('\n')+L("\nMỗi bước một mèo ngồi vào bàn, xong thì chuyền vé cho bạn kế tiếp.","\nEach step has one cat at the desk, then the ticket is passed on.")],
    [/push|deploy|quyen|xin phep|permission|\bmain\b|production|\bmr\b|\bluat\b|\brule/,()=>L("Luật vàng: không ai push, merge hay mở MR khi chưa được hỏi ý. Deploy chỉ vào DEV và phải có phép. Main/production thì mèo không bao giờ deploy; muốn tạo MR vào main thì phải hỏi sếp trước.","Golden rules: nobody pushes, merges or opens an MR unless asked. Deploy goes to DEV only, with permission. The cats never deploy main/production; an MR into main needs the boss's okay first.")],
    [/cua|door|\bden\b|lamp|signal|tin hieu|\bdev\b|\buat\b|\bprod\b/,()=>L("Tầng 2 có 3 cửa: PROD (khoá, chỉ để trưng bày), DEV và UAT (không khoá, có đèn tín hiệu). Đèn xanh là rảnh, đèn vàng nhấp nháy là đang deploy. Tất cả chỉ là hình minh hoạ.","Floor 2 has 3 doors: PROD (locked, display only), DEV and UAT (unlocked, with signal lamps). Green is free, blinking amber means a deploy is running. It is all illustration.")],
    [/cach choi|how to play|huong dan|\bhelp\b|dieu khien|dung game|bat dau|choi sao|nhiem vu|quest|yeu cau|request|\bbut\b|\bpen\b/,()=>L("Cách chơi: bấm cây bút ✒️ (cạnh nút nhật ký) để viết yêu cầu rồi Ký & gửi, cả đội sẽ chạy 8 bước. Bấm vào mèo để nghe chuyện (bấm dấu ? để xem hồ sơ), bấm đồ vật để mèo tới dùng. Lăn chuột hoặc chụm hai ngón để zoom, kéo để di chuyển.","How to play: tap the ✒️ pen (next to the log button) to write a request and sign it; the team runs the 8 steps. Tap a cat to chat (then ? for the profile), tap furniture and a cat will use it. Wheel or pinch to zoom, drag to pan.")],
@@ -1766,7 +1766,7 @@ function buildSage(){
   const msgs=$('sagemsgs'),add=(t,who)=>{const d=document.createElement('div');d.className='sm '+who;d.textContent=t;msgs.append(d);msgs.scrollTop=msgs.scrollHeight;return d};
   const ask=t=>{t=t.trim();if(!t)return;UIEV('sage');add(t,'me');const dots=add('…','bot');
     setTimeout(()=>{dots.textContent=sageAnswer(t);msgs.scrollTop=msgs.scrollHeight;SND.play('pop')},350+Math.random()*350)};
-  const chips=L(["Quy trình HCPH?","Ai làm bước nào?","Luật push/deploy?","Cách chơi?","Kể chuyện cười"],["The HCPH flow?","Who does what?","Push/deploy rules?","How to play?","Tell a joke"]);
+  const chips=L(["Quy trình Quest?","Ai làm bước nào?","Luật push/deploy?","Cách chơi?","Kể chuyện cười"],["The Quest flow?","Who does what?","Push/deploy rules?","How to play?","Tell a joke"]);
   $('sagechips').innerHTML=chips.map((c,i)=>`<button type="button" data-q="${['quy trinh','ai lam buoc nao','luat push deploy','cach choi','ke chuyen cuoi'][i]}">${c}</button>`).join('');
   $('sagechips').onclick=e=>{const b=e.target.closest('button');if(b)ask(b.dataset.q)};
   $('sageform').onsubmit=e=>{e.preventDefault();const i=$('sagein');ask(i.value);i.value=''};

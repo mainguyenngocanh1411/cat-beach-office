@@ -1,4 +1,4 @@
-/* Model playbook: which model and effort to use at each stage of the HCPH flow, plus ways to spend fewer tokens.
+/* Model playbook: which model and effort to use at each stage of the Quest flow, plus ways to spend fewer tokens.
    It feeds the cat profile cards, the HUD, incident cards, Mr Know-It-All's answers and a handbook panel (Settings, or the B key). */
 (()=>{
 'use strict';
@@ -42,7 +42,7 @@ const SAVE=[
   [L('Tách context theo giai đoạn','Split context by stage'),L('Phân tích và code chung một session. Review, test và deploy mở session hoặc subagent riêng. Dùng /clear giữa các task khác nhau.','Analysis and code share a session. Review, test and deploy get their own session or subagent. Use /clear between unrelated tasks.')],
   [L('Subagent cho việc ồn','Subagents for noisy work'),L('Quét code, đọc log, chạy test và đọc HAR đều sinh nhiều output. Subagent nhận hết và chỉ trả lại bản tóm tắt vài dòng.','Code sweeps, log reading, test runs and HAR reading produce lots of output. A subagent absorbs it and returns a few-line summary.')],
   [L('Cơ học thì chuyển thành script','Turn mechanical work into scripts'),L('Probe, deploy và clone org đã có trong .claude/scripts. Claude chỉ chạy script và đọc kết quả, không cần suy luận lại từng lần.','Probes, deploys and org clones already live in .claude/scripts. Claude just runs the script and reads the result, with no re-reasoning each time.')],
-  [L('Thông tin bền vào CLAUDE.md, memory, skill hcph','Keep durable facts in CLAUDE.md, memory and the hcph skill'),L('Đừng giải thích lại bối cảnh mỗi lần.','Do not re-explain the background every time.')],
+  [L('Thông tin bền vào CLAUDE.md, memory, skill dự án','Keep durable facts in CLAUDE.md, memory and the project skill'),L('Đừng giải thích lại bối cảnh mỗi lần.','Do not re-explain the background every time.')],
   [L('Đọc có chọn lọc','Read selectively'),L('Dùng Grep rồi Read đúng đoạn cần, không đọc cả file lớn.','Grep first, then Read just the part you need; never read a whole big file.')],
   [L('Giảm effort khi việc đơn giản','Lower the effort for simple jobs'),L('Effort là phần chi phí lớn nhất của model mạnh. Đừng để effort cao cho việc sửa một dòng.','Effort is the biggest cost of a strong model. Do not leave it high for a one-line fix.')]];
 const FLOW=[['opus',L('Opus (phân tích, ra plan ngắn)','Opus (analyse, write a short plan)')],['sonnet',L('Sonnet (code theo plan, commit nhỏ)','Sonnet (code to the plan, small commits)')],

@@ -10,7 +10,7 @@ const stats=()=>{try{return JSON.parse(lsGet('stats','{}'))}catch(e){return {}}}
 
 const NODES=[
   {id:'coastal',x:340,y:850,e:'🏖️',req:0,play:true,
-   n:L('Văn phòng ven biển','Coastal Office'),d:L('Nơi mọi quest bắt đầu: 8 chú mèo, 1 quy trình HCPH và một chiếc thang máy có cụ mèo ngủ trên nóc.','Where every quest begins: 8 cats, one HCPH flow and a lift with a sleepy old cat on its roof.')},
+   n:L('Văn phòng ven biển','Coastal Office'),d:L('Nơi mọi quest bắt đầu: 8 chú mèo, 1 quy trình Quest và một chiếc thang máy có cụ mèo ngủ trên nóc.','Where every quest begins: 8 cats, one Quest flow and a lift with a sleepy old cat on its roof.')},
   {id:'jungle',x:235,y:735,e:'🌴',req:3,n:L('Rừng Mã Nguồn','Source Jungle'),d:L('Mê cung nhánh git rậm rạp. Nhớ mang theo worktree riêng, kẻo lạc.','A thick maze of git branches. Bring your own worktree or get lost.')},
   {id:'pyramid',x:390,y:640,e:'🔺',req:6,n:L('Kim Tự Tháp Pipeline','Pipeline Pyramid'),d:L('Mỗi tầng là một job CI. Đừng làm đỏ viên gạch nào.','Every level is a CI job. Do not turn a single brick red.')},
   {id:'ruins',x:575,y:735,e:'🏛️',req:10,n:L('Phế Tích Tài Liệu','Docs Ruins'),d:L('Tài liệu cổ chưa ai cập nhật suốt ba kỷ nguyên. Docsy đang nhìn bạn.','Ancient docs nobody has updated in three eras. Docsy is watching you.')},
