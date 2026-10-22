@@ -15,7 +15,7 @@ const NODES=[
   {id:'pyramid',x:390,y:640,e:'🔺',req:6,n:L('Kim Tự Tháp Pipeline','Pipeline Pyramid'),d:L('Mỗi tầng là một job CI. Đừng làm đỏ viên gạch nào.','Every level is a CI job. Do not turn a single brick red.')},
   {id:'ruins',x:575,y:735,e:'🏛️',req:10,n:L('Phế Tích Tài Liệu','Docs Ruins'),d:L('Tài liệu cổ chưa ai cập nhật suốt ba kỷ nguyên. Docsy đang nhìn bạn.','Ancient docs nobody has updated in three eras. Docsy is watching you.')},
   {id:'volcano',x:690,y:575,e:'🌋',req:15,n:L('Núi Lửa Sự Cố','Incident Volcano'),d:L('OOM, 429, 502… phun trào bất cứ lúc nào. Mang theo áo chống cháy.','OOM, 429, 502… erupting at any time. Bring a fireproof coat.')},
-  {id:'light',x:285,y:470,e:'🗼',req:20,n:L('Hải Đăng Giám Sát','Monitoring Lighthouse'),d:L('Soi sáng từng dòng log trong đêm dài.','Lighting up every log line through the long night.')},
+  {id:'light',x:285,y:470,e:'🗼',req:0,hub:true,n:L('Hải Đăng Giám Sát','Monitoring Lighthouse'),d:L('Trung tâm tin tức: theo dõi Hacker News, Calif, Anthropic Research và các blog bạn thêm.','News hub: follow Hacker News, Calif, Anthropic Research and any blog you add.')},
   {id:'moai',x:690,y:300,e:'🗿',req:25,n:L('Đảo Tượng Review','Review Isle'),d:L('Những pho tượng đá đọc từng dòng diff, hai lần, kèm kính lúp.','Stone statues reading every diff, twice, with a magnifying glass.')}];
 
 /* ---------- artwork ---------- */
@@ -180,7 +180,8 @@ function card(){
   const n=NODES[idx(sel)],s=S(),un=unlocked(n,s),st=starsOf(n,s),c=$('wm-card');
   const need=Math.max(0,n.req-s.q);
   let btn;
-  if(n.play)btn=`<button class="pill go" type="button" id="wm-go">▶ ${L('Vào chơi','Play')}</button>`;
+  if(n.hub)btn=`<button class="pill go" type="button" id="wm-go">🔭 ${L('Vào hải đăng','Enter lighthouse')}</button>`;
+  else if(n.play)btn=`<button class="pill go" type="button" id="wm-go">▶ ${L('Vào chơi','Play')}</button>`;
   else if(un)btn=`<button class="pill ghost" type="button" disabled>🚧 ${L('Sắp ra mắt','Coming soon')}</button>`;
   else btn=`<button class="pill ghost" type="button" disabled>🔒 ${L('Chưa mở khóa','Locked')}</button>`;
   c.innerHTML=`<button class="x" type="button" id="wm-cx" aria-label="${L('Đóng','Close')}">✕</button>
@@ -220,6 +221,7 @@ function open(fg){
   syncBtns();
 }
 function enter(){
+  if(NODES[idx(sel)].hub){if(window.NewsHub)NewsHub.open();return}
   if(!NODES[idx(sel)].play&&sel!=='coastal')return;
   world.classList.add('leaving');try{SND.play('fanfare')}catch(e){}
   setTimeout(()=>{world.classList.remove('on','leaving');document.body.classList.remove('onmap');if(window.UI&&UI.maybeTour)UI.maybeTour()},520);

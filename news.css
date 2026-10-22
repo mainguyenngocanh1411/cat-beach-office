@@ -1,0 +1,42 @@
+/* Monitoring Lighthouse: a news hub. Full-screen scene with a sweeping beam and one boat per source, plus a feed panel. */
+#newshub{position:absolute;inset:0;z-index:17;display:none;background:linear-gradient(#0d1b3a,#1b3f6b 55%,#14587a);color:#fff;overflow:hidden;font-family:inherit}
+#newshub.on{display:block}
+#newshub .nh-sky{position:absolute;inset:0;width:100%;height:100%}
+#newshub .nh-beam{transform-origin:150px 190px;animation:nhsweep 7s ease-in-out infinite alternate}
+@keyframes nhsweep{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+#newshub .nh-bob{animation:nhbob 3.2s ease-in-out infinite}
+@keyframes nhbob{50%{transform:translateY(-4px) rotate(1.5deg)}}
+#newshub .nh-star{animation:nhtw 2.6s ease-in-out infinite}
+@keyframes nhtw{50%{opacity:.25}}
+#newshub .nh-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:16px 20px 10px;z-index:4}
+#newshub .nh-top h2{margin:0;font-size:17px;flex:1;text-shadow:0 2px 4px rgba(0,0,0,.4)}
+#newshub .nh-top button,#newshub .nh-add button{width:auto;min-width:34px;height:34px;padding:0 12px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:rgba(10,24,52,.6);color:#fff;font:inherit;font-weight:700;font-size:13px;cursor:pointer;box-shadow:none}
+#newshub .nh-top button:hover{background:rgba(255,255,255,.2)}
+#newshub .nh-boats{position:absolute;left:0;right:454px;bottom:0;height:46%;z-index:1}
+#newshub .nh-boat{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer;background:none;border:0;color:#fff;font:inherit;padding:0;box-shadow:none;width:auto}
+#newshub .nh-boat .hull{font-size:34px;line-height:1;filter:drop-shadow(0 4px 3px rgba(0,0,0,.4));animation:nhbob 3.2s ease-in-out infinite}
+#newshub .nh-boat .nm{margin-top:2px;max-width:120px;font-size:12px;font-weight:800;text-shadow:0 1px 3px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#newshub .nh-boat .dot{position:absolute;top:-4px;right:-8px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#e5486f;color:#fff;font-size:11px;font-weight:800;display:none;place-items:center;border:2px solid #fff}
+#newshub .nh-boat.new .dot{display:grid}
+#newshub .nh-boat.sel .hull{filter:drop-shadow(0 0 10px #ffe27a)}
+#newshub .nh-boat.err .hull{opacity:.45}
+#newshub .nh-cat{position:absolute;left:92px;top:96px;z-index:1;font-size:12px;max-width:190px;padding:6px 10px;border-radius:12px;background:#fff;color:#4a3b52;font-weight:700;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+#newshub .nh-cat::after{content:"";position:absolute;left:-6px;top:12px;border:6px solid transparent;border-right-color:#fff;border-left:0}
+#nh-panel{position:absolute;z-index:3;right:12px;top:56px;bottom:12px;width:min(430px,calc(100% - 24px));display:flex;flex-direction:column;padding:12px 14px;background:var(--u-bg,rgba(255,250,240,.96));color:var(--u-ink,#4a3b52);border:2px solid var(--u-line,#e3d6bd);border-radius:var(--u-r3,18px);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#nh-panel h3{margin:0 0 2px;font-size:15px}
+#nh-panel .sub{font-size:11px;color:var(--u-soft,#7a6a86);margin-bottom:8px}
+#nh-list{flex:1;overflow:auto;margin:0 -4px;padding:0 4px}
+#nh-list a.it{display:block;padding:8px 10px;margin:0 0 6px;border:2px solid var(--u-line,#e3d6bd);border-radius:12px;color:inherit;text-decoration:none;background:rgba(255,255,255,.35)}
+#nh-list a.it:hover{border-color:var(--u-acc,#ffb84d)}
+#nh-list a.it.unread{border-left:6px solid #e5486f}
+#nh-list .t{font-weight:800;font-size:13px;line-height:1.3}
+#nh-list .m{font-size:11px;color:var(--u-soft,#7a6a86);margin-top:3px}
+#nh-list .d{font-size:12px;margin-top:4px;line-height:1.35}
+#nh-list .msg{padding:14px 6px;font-size:13px;line-height:1.5}
+#nh-panel .nh-add{display:flex;gap:6px;margin-top:8px}
+#nh-panel .nh-add input{flex:1;min-width:0;padding:7px 10px;border-radius:999px;border:2px solid var(--u-line,#e3d6bd);background:#fff;color:#333;font:inherit;font-size:12px}
+#nh-panel .nh-add button{height:32px;border-color:var(--u-line,#e3d6bd);background:var(--u-acc,#ffb84d);color:#3b2a1a}
+#nh-panel .nh-set{font-size:11px;color:var(--u-soft,#7a6a86);margin-top:6px}
+#nh-panel .nh-set a{color:#6d4fd6;cursor:pointer;font-weight:700;text-decoration:underline}
+@media(max-width:900px){#newshub .nh-boats{right:0;bottom:56%;height:34%}}
+@media(max-width:700px){#nh-panel{top:auto;height:56%;left:8px;right:8px;width:auto}#newshub .nh-cat{left:70px;top:70px}}
