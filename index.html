@@ -162,22 +162,28 @@ svg .a-wave .armR{animation:wave .32s ease-in-out infinite alternate;transform:r
 @keyframes drift{from{transform:rotate(12deg)}to{transform:rotate(36deg)}}
 @keyframes wave{from{transform:rotate(-150deg)}to{transform:rotate(-105deg)}}
 svg .yawn,svg .tongue{opacity:0;transform-box:fill-box;transform-origin:50% 0}
-svg .a-yawn .yawn{animation:yawn 2.2s ease-in-out}
-svg .a-yawn .catin{animation:yawnb 2.2s ease-in-out}
-svg .a-yawn .eyes{animation:yawne 2.2s ease-in-out}
-svg .a-yawn .armR{animation:yawna 2.2s ease-in-out}
-svg .a-groom .catin{animation:groomb 1.1s ease-in-out infinite}
-svg .a-groom .armR{transform:rotate(-155deg) translate(-4px,2px);animation:lick .5s ease-in-out infinite alternate}
-svg .a-groom .tongue{animation:lickt .5s ease-in-out infinite alternate}
-svg .a-dance .catin{animation:dance .6s ease-in-out infinite}
-svg .a-dance .armL{animation:dL .6s ease-in-out infinite}
-svg .a-dance .armR{animation:dR .6s ease-in-out infinite}
-svg .a-dance .legL{animation:kick .3s ease-in-out infinite alternate}
-svg .a-dance .legR{animation:kick .3s ease-in-out infinite alternate-reverse}
+svg .a-yawn .yawn,svg #cwalk.yawn .yawn{animation:yawn 2.2s ease-in-out}
+svg .a-yawn .catin,svg #cwalk.yawn .catin{animation:yawnb 2.2s ease-in-out}
+svg .a-yawn .eyes,svg #cwalk.yawn .eyes{animation:yawne 2.2s ease-in-out}
+svg .a-yawn .armR,svg #cwalk.yawn .armR{animation:yawna 2.2s ease-in-out}
+svg .a-groom .catin,svg #cwalk.groom .catin{animation:groomb 1.1s ease-in-out infinite}
+svg .a-groom .armR,svg #cwalk.groom .armR{transform:rotate(-155deg) translate(-4px,2px);animation:lick .5s ease-in-out infinite alternate}
+svg .a-groom .tongue,svg #cwalk.groom .tongue{animation:lickt .5s ease-in-out infinite alternate}
+svg .a-dance .catin,svg #cwalk.dance .catin{animation:dance .6s ease-in-out infinite}
+svg .a-dance .armL,svg #cwalk.dance .armL{animation:dL .6s ease-in-out infinite}
+svg .a-dance .armR,svg #cwalk.dance .armR{animation:dR .6s ease-in-out infinite}
+svg .a-dance .legL,svg #cwalk.dance .legL{animation:kick .3s ease-in-out infinite alternate}
+svg .a-dance .legR,svg #cwalk.dance .legR{animation:kick .3s ease-in-out infinite alternate-reverse}
 svg .a-dance .tail{animation-duration:.4s}
 svg .c.cheer .armL{animation:dL .5s ease-in-out infinite}
 svg .c.cheer .armR{animation:dR .5s ease-in-out infinite}
 svg .a-eat .armL,svg .a-eat .armR,svg #cwalk.eat .armL,svg #cwalk.eat .armR{animation:munch .7s ease-in-out infinite}
+svg .a-play .catin,svg #cwalk.play .catin{animation:hop .6s ease-in-out infinite}
+svg .a-play .armR,svg #cwalk.play .armR{animation:claw .26s ease-in-out infinite alternate}
+svg .a-play .armL,svg #cwalk.play .armL{animation:claw2 .26s ease-in-out infinite alternate .13s}
+svg .a-drink .catin,svg #cwalk.drink .catin{animation:groomb 1.1s ease-in-out infinite}
+svg .a-drink .armR,svg #cwalk.drink .armR{transform:rotate(-155deg) translate(-4px,2px);animation:lick .5s ease-in-out infinite alternate}
+svg .a-drink .tongue,svg #cwalk.drink .tongue{animation:lickt .5s ease-in-out infinite alternate}
 @keyframes yawn{0%,100%{opacity:0;transform:scaleY(.1)}30%,70%{opacity:1;transform:scaleY(1.5)}}
 @keyframes yawnb{30%,70%{transform:scale(1.05,1.07)}}
 @keyframes yawne{25%,75%{transform:scaleY(.15)}}
@@ -1155,10 +1161,10 @@ async function gate(st){
 const SPOTS=[
   {fl:0,at:[5.7,4.95],act:'eat',emo:'🐟',ms:2800},
   {fl:0,at:[7.3,4.85],act:'play',emo:'🧶',ms:2400},
-  {fl:0,at:[0.7,3.0],act:'sit',emo:'🌊',ms:3000},
-  {fl:1,at:[4.0,4.95],act:'eat',emo:'💧',ms:2200},
+  {fl:0,at:[0.7,3.0],act:'yawn',emo:'🌊',ms:3000},
+  {fl:1,at:[4.0,4.95],act:'drink',emo:'💧',ms:2200},
   
-  {fl:1,at:[2.1,1.35],act:'sit',emo:'🔒',ms:2000},{fl:1,at:[0.7,3.0],act:'nap',emo:'💤',ms:3400}
+  {fl:1,at:[2.1,1.35],act:'groom',emo:'🔒',ms:2000},{fl:1,at:[0.7,3.0],act:'nap',emo:'💤',ms:3400}
 ];
 let wanderTask=null,recall=false,lastSpot=-1;
 const taken=new Set();
@@ -1573,9 +1579,9 @@ function initClicks(){
     chatter(t,x,y,fl);if(k==='prod')log('🚫 '+t,'bad');else if(FUSE[k])useFurn(k)}));
 }
 // Clicking furniture while the team is between tasks sends the nearest free cat to use it.
-const FUSE={water:['eat','💧',2600,[0,1.15],['Glug glug… so refreshing!','Cold water. Now I can think.','Hydration complete 💧']],
+const FUSE={water:['drink','💧',2600,[0,1.15],['Glug glug… so refreshing!','Cold water. Now I can think.','Hydration complete 💧']],
   ice:['eat','🍦',3200,[0,1.15],['Ice cream! Best. Quest. Reward.','Brain freeze… worth it 🍦','One scoop for me, none for the bugs.']],
-  tree:['sit','😸',3000],
+  tree:['nap','😸',3600],
   post2:['scratch','✨',2400]};
 const furnBusy=new Set();
 async function useFurn(k){
@@ -1810,5 +1816,3 @@ log('Welcome to the Cat Beach Office! Tap the ✒️ pen to write a request, or 
 <script src="live.js"></script>
 </body>
 </html>
-
-<!-- Cat Beach Office -->
