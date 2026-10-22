@@ -1234,7 +1234,7 @@ const pickKind=()=>{const p=curPhase();
 const hideCat=(c,on)=>{c.el.style.display=on?'none':'';c.tag.style.display=on?'none':''};
 async function oglide(id,to,ms=null){
   const o=outdoor[id],[x0,y0]=o.xy;ms=ms??Math.hypot(to[0]-x0,to[1]-y0)*5;
-  o.flip.setAttribute('transform',`scale(${to[0]<x0?-1:1} 1)`);o.el.classList.add('walking');
+  o.flip.setAttribute('transform',`scale(${to[0]<x0?-1:1} 1)`);if(!o.el.classList.contains('a-swim'))o.el.classList.add('walking');
   await tween(ms,k=>{o.xy=[x0+(to[0]-x0)*k,y0+(to[1]-y0)*k];o.el.setAttribute('transform',`translate(${o.xy[0].toFixed(1)} ${o.xy[1].toFixed(1)})`)});
   o.el.classList.remove('walking');
 }
@@ -1303,12 +1303,13 @@ async function beachOuting(id,kind,ix){
     if(chuteP)await chuteP;
     else{await walkTo(c.mv,...ELEV.door,400);hideCat(c,true);spawnOut(c,id,kind,mode,BEACH_IN)}
     const o=outdoor[id],el=o.el;
-    for(const v of B.via||[])await oglide(id,v);
+    const sea=kind==='swim',wade=on=>{if(!sea||!outdoor[id])return;el.classList.toggle('a-swim',on);seaGear(o,id,on)};   // swim, not walk, once in the water
+    for(const [i,v] of (B.via||[]).entries()){await oglide(id,v);if(i===0)wade(true)}
     await oglide(id,at);
     if(!stop()){
       if(lie)el.classList.add('a-lie');
       if(lie){o.pose.setAttribute('transform','translate(36 -4) rotate(-90) scale(.88)');o.emo.setAttribute('y',-48)}
-      if(kind==='swim'){el.classList.add(mode==='float'?'a-float':'a-swim');seaGear(o,id,true);if(mode==='float'){o.pose.setAttribute('transform','translate(34 -12) rotate(-90) scale(.88)');o.emo.setAttribute('y',-52)}}
+      if(kind==='swim'){el.classList.remove('a-swim');el.classList.add(mode==='float'?'a-float':'a-swim');seaGear(o,id,true);if(mode==='float'){o.pose.setAttribute('transform','translate(34 -12) rotate(-90) scale(.88)');o.emo.setAttribute('y',-52)}}
       o.emo.textContent=B.emo;
       const end=performance.now()+B.ms[0]+Math.random()*(B.ms[1]-B.ms[0]);
       let say=performance.now()+1500+Math.random()*2000,thr=performance.now()+800+Math.random()*1500,drift=performance.now()+2500;
@@ -1322,9 +1323,9 @@ async function beachOuting(id,kind,ix){
           el.classList.add('a-play');setTimeout(()=>el.classList.remove('a-play'),700)}
       }
       el.classList.remove('a-lie','a-swim','a-float');o.emo.textContent='';o.pose.setAttribute('transform','scale(.88)');o.emo.setAttribute('y',-92);
-      if(kind==='swim'){seaGear(o,id,false);o.bob.removeAttribute('transform')}
+      if(kind==='swim'){o.bob.removeAttribute('transform');wade(true)}
     }
-    for(const v of [...(B.via||[])].reverse())await oglide(id,v);
+    for(const [i,v] of [...(B.via||[])].reverse().entries()){await oglide(id,v);if(i===(B.via||[]).length-1)wade(false)}
     await oglide(id,BEACH_IN);el.remove();delete outdoor[id];
     hideCat(c,false);
     await ride(c.mv,c.fl);
