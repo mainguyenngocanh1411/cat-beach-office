@@ -1,0 +1,27 @@
+/* Model playbook: which model / effort to use at each stage */
+.mb{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;color:#fff;line-height:1.5;white-space:nowrap}
+.mb.opus{background:#8b5cf6}.mb.sonnet{background:#3b82f6}.mb.haiku{background:#10b981}.mb.script{background:#64748b}
+.mb small{font-weight:600;opacity:.9;margin-left:3px}
+#pf-model{margin:8px 0 2px;padding:8px 10px;border-radius:var(--u-r1,10px);background:var(--u-line,#e3d6bd);font-size:12px;line-height:1.45}
+#pf-model:empty{display:none}
+#pf-model .mh{font-weight:800;margin-bottom:4px}
+#pf-model .mrow{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+#pf-model a,#pbpanel a.lnk{color:#6d4fd6;font-weight:700;cursor:pointer;text-decoration:underline}
+#card .mtip{margin:0 0 8px;padding:6px 10px;border-radius:10px;background:rgba(139,92,246,.12);font-size:12px;font-weight:700;color:var(--u-ink,#4a3b52)}
+/* handbook panel */
+#pbook .u2p{width:min(560px,100%)}
+#pbook .lead{margin:0 0 8px;padding:8px 10px;border-radius:var(--u-r1,10px);background:rgba(139,92,246,.12);font-weight:700;font-size:13px}
+#pbook .tabs{margin:6px 0 10px;flex-wrap:wrap}
+.pbcard{display:grid;grid-template-columns:34px 1fr;gap:8px;padding:8px 10px;margin:6px 0;border:2px solid var(--u-line);border-radius:var(--u-r2,14px);background:var(--u-bg)}
+.pbcard .ic{font-size:24px;line-height:1.2}
+.pbcard h4{margin:0 0 3px;font-size:13px}
+.pbcard .mrow{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0}
+.pbcard .wh{font-size:12px;color:var(--u-soft)}
+.pbcard .tp{font-size:12px;margin-top:3px}
+.pbcard .who{font-size:11px;color:var(--u-soft);margin-top:3px}
+.pbcard.inc{border-color:#e5486f}
+.pbcard .num{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--u-acc);color:#3b2a1a;font-weight:900}
+.flow{display:flex;flex-direction:column;align-items:stretch;gap:0}
+.flow .fs{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--u-line);border-radius:var(--u-r2,14px);background:var(--u-bg);font-size:13px}
+.flow .ar{text-align:center;color:var(--u-soft);line-height:1;font-size:16px;padding:2px 0}
+.pbnote{margin-top:10px;font-size:11px;color:var(--u-soft)}

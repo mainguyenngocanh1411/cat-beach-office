@@ -1,0 +1,154 @@
+/* World map (level select) */
+body.onmap #scene{visibility:hidden}
+#toasts{z-index:16}
+#world{position:absolute;inset:0;z-index:15;display:none;background:#3fb8d6;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#world.on{display:block;animation:wmin .5s ease-out}
+#world.leaving{animation:wmout .5s ease-in forwards}
+@keyframes wmin{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:none}}
+@keyframes wmout{to{opacity:0;transform:scale(1.18)}}
+#stage #wm-svg{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+#wm-head{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;pointer-events:none}
+#wm-head>*{pointer-events:auto}
+#wm-head .ttl{background:var(--u-glass);border:2px solid var(--u-line);border-radius:999px;padding:6px 14px;font-weight:800;font-size:17px;color:var(--u-ink);box-shadow:var(--u-sh1);backdrop-filter:blur(4px)}
+#wm-head .ttl small{font-weight:700;font-size:12px;color:var(--u-soft)}
+#wm-head .acts{display:flex;gap:6px}
+.wmb{width:38px;height:38px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:800;line-height:1;background:var(--u-glass);border:2px solid var(--u-line);color:var(--u-ink);box-shadow:var(--u-sh1);backdrop-filter:blur(4px)}
+#wm-zoom{position:absolute;left:12px;bottom:12px;display:flex;flex-direction:column;gap:6px}
+#wm-legend{position:absolute;left:12px;top:58px;display:flex;flex-direction:column;gap:3px;padding:7px 10px;border-radius:12px;background:var(--u-glass);border:2px solid var(--u-line);font-size:11px;font-weight:700;color:var(--u-ink);backdrop-filter:blur(4px);pointer-events:none}
+#wm-card{display:none;left:50%;bottom:12px;transform:translateX(-50%);width:min(470px,calc(100% - 20px));z-index:3}
+#wm-card.on{display:block;animation:wmcard .25s ease-out}
+@keyframes wmcard{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translateX(-50%)}}
+#wm-card .ch{display:flex;gap:10px;align-items:center;padding-right:30px}
+#wm-card .big{font-size:38px;line-height:1}
+#wm-card h3{margin:0}
+#wm-card .stars i{font-style:normal;font-size:18px;color:#cbbfa8}
+#wm-card .stars i.on{color:#ffc928;text-shadow:0 1px 0 #a87a10}
+#wm-card .stars em{font-style:normal;font-size:12px;color:var(--u-ok);font-weight:700;margin-left:4px}
+#wm-card p{margin:8px 0}
+#wm-card .req{margin:6px 0;font-size:12px;color:var(--u-soft)}
+#wm-card .req .tr{height:8px;border-radius:4px;background:var(--u-line);overflow:hidden;margin-bottom:3px}
+#wm-card .req .tr i{display:block;height:100%;background:var(--u-acc);border-radius:4px}
+#wm-card .row{display:flex;gap:8px;margin-top:10px}
+#wm-card .row button{flex:1}
+#wm-card button.go{background:var(--u-ok);color:#fff;box-shadow:0 3px 0 #1d8a68;font-size:16px;padding:12px}
+#wm-card button:disabled{opacity:.6}
+/* nodes */
+.wm-node{cursor:pointer;outline:none}
+.wm-node .halo{fill:rgba(255,255,255,.3)}
+.wm-node.open .halo,.wm-node.new .halo{animation:wmpulse 1.5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.wm-node.sel .halo{fill:rgba(255,255,255,.65)}
+.wm-node .disc{fill:#ffb84d;stroke:#fff;stroke-width:5;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25));transition:transform .15s;transform-box:fill-box;transform-origin:center}
+.wm-node.done .disc{fill:#43c97b}
+.wm-node.lock .disc{fill:#b8c4cc}
+.wm-node:hover .disc,.wm-node:focus-visible .disc{transform:scale(1.12)}
+.wm-node .ico{pointer-events:none}
+.wm-node.done .ico{fill:#fff;font-weight:900;font-size:26px}
+.wm-node.lock .ico{opacity:.85}
+.wm-node .lbl rect{fill:rgba(255,255,255,.92);stroke:#e3d6bd;stroke-width:1.5}
+.wm-node .lbl text{fill:#4a3b52}
+.wm-node.lock .lbl{opacity:.8}
+.wm-node.shake{animation:wmshake .4s}
+@keyframes wmshake{25%{transform:translate(var(--tx,0),0)}}
+.wm-node.shake .disc{animation:wmsh .4s}
+@keyframes wmsh{20%{transform:translateX(-6px)}50%{transform:translateX(6px)}80%{transform:translateX(-3px)}}
+@keyframes wmpulse{50%{transform:scale(1.35);opacity:.3}}
+/* artwork animation */
+.wm-wave{animation:wmw 5s ease-in-out infinite}
+@keyframes wmw{50%{transform:translateX(16px)}}
+.wm-foam{animation:wmfoam 4s ease-in-out infinite alternate}
+@keyframes wmfoam{to{opacity:.25}}
+.wm-bob{animation:wmbob 3s ease-in-out infinite alternate}
+@keyframes wmbob{to{transform:translateY(5px)}}
+.wm-float{animation:wmfl 5s ease-in-out infinite alternate}
+@keyframes wmfl{to{transform:translate(18px,-14px)}}
+.wm-pinb{animation:wmpin 1s ease-in-out infinite alternate}
+@keyframes wmpin{to{transform:translateY(-7px)}}
+.wm-spout circle{animation:wmsp 2.2s ease-out infinite}
+.wm-spout circle:nth-child(2){animation-delay:.3s}.wm-spout circle:nth-child(3){animation-delay:.6s}.wm-spout circle:nth-child(4){animation-delay:.9s}
+@keyframes wmsp{0%{opacity:0;transform:translateY(8px)}30%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+.wm-smoke circle{animation:wmsm 4s ease-in-out infinite alternate}
+.wm-smoke circle:nth-child(2){animation-delay:-1.3s}.wm-smoke circle:nth-child(3){animation-delay:-2.6s}
+@keyframes wmsm{to{transform:translate(10px,-12px);opacity:.55}}
+.wm-beam{animation:wmbeam 3s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:100% 50%}
+@keyframes wmbeam{to{transform:scaleX(.55);opacity:.5}}
+.wm-needle{animation:wmneedle 5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
+@keyframes wmneedle{from{transform:rotate(-14deg)}to{transform:rotate(18deg)}}
+.wm-cloud{animation:wmcl 30s ease-in-out infinite alternate}
+@keyframes wmcl{to{transform:translateX(50px)}}
+@media(min-width:601px){#wm-card{left:auto;right:12px;transform:none;width:340px}#wm-card.on{animation:wmcardr .25s ease-out}}
+@keyframes wmcardr{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(max-width:600px){
+  #wm-card{left:0;bottom:0;transform:none;width:100%;border-radius:var(--u-r3) var(--u-r3) 0 0}
+  @keyframes wmcard{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  #wm-legend{display:none}
+  #wm-head .ttl{font-size:14px;padding:5px 10px}
+  #wm-zoom{bottom:auto;top:56px}
+}
+@media(pointer:coarse){.wmb{width:42px;height:42px}}
+
+/* region animations */
+.wm-sway{transform-box:fill-box;transform-origin:50% 100%;animation:wmsway 3.6s ease-in-out infinite alternate}
+@keyframes wmsway{from{transform:rotate(-3deg)}to{transform:rotate(3.5deg)}}
+.wm-drift{animation:wmdrift 90s ease-in-out infinite alternate}
+@keyframes wmdrift{0%{transform:translate(-130px,330px)}50%{transform:translate(480px,250px)}100%{transform:translate(1080px,310px)}}
+.wm-float2{animation:wmfl2 4s ease-in-out infinite alternate}
+@keyframes wmfl2{from{transform:translateY(-4px) rotate(-1.5deg)}to{transform:translateY(5px) rotate(1.5deg)}}
+.wm-wave-paw{transform-box:fill-box;transform-origin:0 100%;animation:wmpaw 1.4s ease-in-out infinite alternate}
+@keyframes wmpaw{from{transform:rotate(-25deg)}to{transform:rotate(20deg)}}
+.wm-fly{animation:wmfly 30s linear infinite}
+@keyframes wmfly{from{transform:translate(-80px,0)}50%{transform:translate(500px,-26px)}to{transform:translate(1090px,6px)}}
+.wm-flap{transform-box:fill-box;transform-origin:50% 100%;animation:wmflap .55s ease-in-out infinite alternate}
+@keyframes wmflap{from{transform:scaleY(1)}to{transform:scaleY(.25)}}
+.wm-orbit{transform-origin:219px 400px;animation:wmorb 16s linear infinite}
+@keyframes wmorb{to{transform:rotate(360deg)}}
+/* volcano */
+.wm-glow{animation:wmglow 2.4s ease-in-out infinite alternate}
+@keyframes wmglow{from{opacity:.15;transform:scale(.9)}to{opacity:.5;transform:scale(1.15)}}
+.wm-glow{transform-box:fill-box;transform-origin:center}
+.wm-lava{animation:wmlava 1.2s ease-in-out infinite alternate}
+@keyframes wmlava{from{fill:#ff8a2a}to{fill:#ffe27a}}
+.wm-lflow{animation:wmflow 1.4s linear infinite}
+@keyframes wmflow{to{stroke-dashoffset:-48}}
+.wm-ember{transform-box:fill-box;transform-origin:center;animation:wmember 5.4s ease-out infinite;opacity:0}
+@keyframes wmember{0%{transform:translate(0,0) scale(.5);opacity:0}8%{opacity:1}48%{transform:translate(var(--dx),var(--dy)) scale(1)}100%{transform:translate(calc(var(--dx)*1.5),50px) scale(.4);opacity:0}}
+.wm-rumble{animation:wmrumble 5.4s linear infinite}
+@keyframes wmrumble{0%,3%,12%,100%{transform:none}5%{transform:translate(-2px,1px)}7%{transform:translate(2px,-1px)}9%{transform:translate(-1.5px,0)}}
+.wm-smoke circle{animation-duration:3s}
+/* lighthouse */
+.wm-sweep{animation:wmsweep 4.5s ease-in-out infinite alternate}
+@keyframes wmsweep{from{transform:scaleX(1)}to{transform:scaleX(-1)}}
+.wm-lamp{animation:wmlamp 1.1s ease-in-out infinite alternate}
+@keyframes wmlamp{from{opacity:.4}to{opacity:1}}
+.wm-rip{transform-box:fill-box;transform-origin:center;animation:wmrip 3.2s ease-out infinite}
+@keyframes wmrip{from{transform:scale(.5);opacity:.9}to{transform:scale(1.7);opacity:0}}
+/* review isle */
+.wm-eye{animation:wmeye 2.6s ease-in-out infinite alternate}
+@keyframes wmeye{from{opacity:.2}to{opacity:1}}
+.wm-lens{animation:wmlens 6s ease-in-out infinite alternate}
+@keyframes wmlens{0%{transform:translate(-30px,6px) rotate(-8deg)}100%{transform:translate(40px,-4px) rotate(8deg)}}
+.wm-spk{transform-box:fill-box;transform-origin:center;animation:wmspk 2s ease-in-out infinite alternate}
+@keyframes wmspk{from{transform:scale(.3) rotate(0);opacity:.2}to{transform:scale(1.1) rotate(35deg);opacity:1}}
+/* jungle */
+.wm-ff{animation:wmff 3.4s ease-in-out infinite alternate}
+@keyframes wmff{0%{opacity:.1;transform:translate(0,0)}100%{opacity:1;transform:translate(10px,-14px)}}
+.wm-leaf{animation:wmleaf 7s linear infinite;opacity:0}
+@keyframes wmleaf{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translate(26px,90px) rotate(260deg)}}
+.wm-bfly{animation:wmbf 7s ease-in-out infinite alternate}
+@keyframes wmbf{0%{transform:translate(0,0)}50%{transform:translate(28px,-18px)}100%{transform:translate(-10px,-34px)}}
+.wm-bw{transform-box:fill-box;transform-origin:center;animation:wmbw .25s ease-in-out infinite alternate}
+@keyframes wmbw{from{transform:scaleX(1)}to{transform:scaleX(.3)}}
+/* pyramid */
+.wm-pl{animation:wmpl 2s ease-in-out infinite}
+@keyframes wmpl{0%,100%{opacity:.15}40%{opacity:1}}
+/* ruins */
+.wm-page{animation:wmpage 5.4s ease-in infinite;opacity:0}
+@keyframes wmpage{0%{opacity:0;transform:translate(0,10px) rotate(-8deg)}15%{opacity:1}100%{opacity:0;transform:translate(14px,-70px) rotate(24deg)}}
+.wm-rune{animation:wmrune 2.2s ease-in-out infinite alternate}
+@keyframes wmrune{from{opacity:.15}to{opacity:.9}}
+/* coastal */
+.wm-crab{animation:wmcrab 9s ease-in-out infinite alternate}
+@keyframes wmcrab{0%{transform:translateX(-40px)}100%{transform:translateX(60px)}}
+.wm-flag{transform-box:fill-box;transform-origin:0 50%;animation:wmflag .7s ease-in-out infinite alternate}
+@keyframes wmflag{from{transform:skewY(-6deg) scaleX(1)}to{transform:skewY(6deg) scaleX(.85)}}
+.wm-dolphin{animation:wmdol 8s ease-in-out infinite;opacity:0}
+@keyframes wmdol{0%,55%{opacity:0;transform:translate(0,18px) rotate(-50deg)}62%{opacity:1;transform:translate(24px,-26px) rotate(-25deg)}72%{opacity:1;transform:translate(60px,-40px) rotate(5deg)}82%{opacity:1;transform:translate(96px,-22px) rotate(40deg)}90%,100%{opacity:0;transform:translate(112px,18px) rotate(70deg)}}

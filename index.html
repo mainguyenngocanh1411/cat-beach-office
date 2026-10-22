@@ -1,0 +1,1812 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cat Beach Office</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--bg:#f3ead9;--ink:#4a3b52;--panel:#fffaf0;--accent:#ffb84d;--ok:#2bb58a;--bad:#e5486f;--line:#e3d6bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS",system-ui,sans-serif;padding:6px}
+h1{font-size:22px;margin:0 0 10px}
+h1 small{font-weight:400;opacity:.6;font-size:13px}
+.layout{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+@media(max-width:600px){#log,.log{max-height:150px;overflow:auto}.steps{gap:5px}.steps span{padding:7px 0;font-size:11px}.steps span b{font-size:20px}button{padding:14px 12px;font-size:16px}.hint{font-size:12px;opacity:.8}.parch{font-size:16px}#reqin{font-size:16px}body{padding:6px}h1{font-size:18px}.panel{padding:8px 10px}#stage{border-width:2px;border-radius:14px;max-width:none}}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:10px 12px}
+aside{display:flex;flex-direction:column;gap:10px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.steps span{text-align:center;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:4px 0;font-size:11px}
+.steps span b{display:block;font-size:18px}
+.steps .active{background:var(--accent);border-color:#e09a2f}
+.steps .done{background:#bdf0dd;border-color:var(--ok)}
+.steps .bug{background:#ffd1dc;border-color:var(--bad)}
+#stage{position:relative;width:100%;max-width:calc((100vh - 12px)*900/1190);margin-inline:auto;border-radius:18px;overflow:hidden;border:3px solid #b9a98a;background:#bfe9ff}
+#stage svg{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
+#qbtn{position:absolute;z-index:5;width:30px;height:30px;padding:0;border-radius:50%;font-size:17px;font-weight:800;line-height:1;background:#ffd447;color:#5a3d00;border:2px solid #fff;box-shadow:0 2px 8px rgba(60,40,20,.35);display:none;animation:qpop .25s ease-out}
+@keyframes qpop{from{transform:scale(.3)}to{transform:scale(1)}}
+#zoomc{position:absolute;left:12px;bottom:12px;z-index:4;display:flex;flex-direction:column;gap:6px}
+#zoomc button{width:38px;height:38px;padding:0;border-radius:50%;font-size:18px;line-height:1;background:#fffaf0;border:2px solid #e3d6bd;box-shadow:0 2px 6px rgba(60,40,20,.2)}
+@media(min-width:900px) and (orientation:landscape){#stage{max-width:calc((100vh - 12px)*1776/1160)}}
+#steps{position:absolute;left:11px;top:106px;z-index:3;display:none;flex-direction:column;gap:7px}
+#steps.on{display:flex}
+#steps span{position:relative;width:36px;height:36px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:0;cursor:default;box-shadow:0 2px 6px rgba(60,40,20,.25);outline:0}
+#steps span b{display:block;font-size:18px;line-height:1}
+#steps span::after{content:attr(data-tip);position:absolute;left:44px;top:50%;transform:translateY(-50%);white-space:nowrap;background:#4a3b52;color:#fff;font-size:12px;font-weight:700;padding:4px 9px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .15s;z-index:9}
+#steps span:hover::after,#steps span:focus::after{opacity:1}
+#logbtn{position:absolute;right:12px;top:12px;z-index:4;width:44px;height:44px;padding:0;border-radius:50%;font-size:20px;line-height:1;background:#fff7e0;border:3px solid #b9a98a;box-shadow:0 3px 0 #a8956c,0 6px 12px rgba(60,40,20,.25)}
+#logbtn.new::after{content:"";position:absolute;right:1px;top:1px;width:11px;height:11px;border-radius:50%;background:#e5486f;border:2px solid #fff}
+#logbtn.ping{animation:ring .25s 4}
+#logpop{position:absolute;right:10px;top:64px;z-index:6;width:min(92%,380px);max-height:56%;display:none;flex-direction:column;background:#4a3b52;border-radius:14px;box-shadow:0 8px 24px rgba(40,28,14,.4);overflow:hidden}
+#logpop.open{display:flex;animation:pop .18s ease-out}
+@keyframes pop{from{transform:translateY(-6px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+#logpop .lh{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.15)}
+#logx{width:30px;height:30px;padding:0;border-radius:50%;font-size:13px;line-height:1;background:#fff;box-shadow:none}
+#logpop #log{border-radius:0;height:auto;min-height:90px;flex:1;overflow:auto}
+#phone{align-self:flex-start;display:inline-block;background:#fff;border:2px solid var(--line);border-radius:12px;padding:4px 10px;font-size:12px;margin:2px 0}
+#phone.ping{animation:ring .25s 4}
+.hint{margin:6px 2px 0;font-size:12px;opacity:.65}
+button{background:var(--accent);border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer;color:#3b2a1a;box-shadow:0 3px 0 #c98a2d;font-family:inherit;width:100%}
+button:disabled{opacity:.45;cursor:default}
+.scroll{position:relative;padding:0 6px;filter:drop-shadow(0 6px 5px rgba(74,50,20,.28))}
+.scroll .rod{height:16px;border-radius:9px;background:linear-gradient(#8a5a2b,#c99557 40%,#6e4520);position:relative;z-index:2;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.scroll .rod::before,.scroll .rod::after{content:"";position:absolute;top:-3px;bottom:-3px;width:11px;border-radius:6px;background:linear-gradient(#5b3a18,#b98543 45%,#4a2e12)}
+.scroll .rod::before{left:-6px}.scroll .rod::after{right:-6px}
+.parch{position:relative;margin:-2px 8px;padding:14px 18px 12px;color:#4a2f14;font-family:Georgia,"Palatino Linotype",serif;font-size:15px;line-height:1.35;text-align:center;
+ background:radial-gradient(ellipse at 20% 15%,rgba(255,255,255,.55),transparent 55%),radial-gradient(ellipse at 85% 90%,rgba(150,95,35,.28),transparent 55%),linear-gradient(90deg,rgba(120,75,25,.35),transparent 7%,transparent 93%,rgba(120,75,25,.35)),#f1deb0;
+ border-left:1px solid #c9a566;border-right:1px solid #c9a566;transform-origin:top;box-shadow:inset 0 8px 8px -6px rgba(90,55,15,.4),inset 0 -8px 8px -6px rgba(90,55,15,.4)}
+.parch small{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#8a6232;margin-bottom:4px}
+.parch b{font-weight:700;font-style:italic}
+#reqin{display:block;width:100%;margin-top:10px;min-height:76px;max-height:140px;resize:vertical;line-height:1.35;padding:7px 10px;border:0;border-bottom:2px dashed #a8773a;background:rgba(255,248,225,.55);color:#4a2f14;font:italic 14px Georgia,serif;text-align:center;outline:0;border-radius:4px 4px 0 0}
+#reqin::placeholder{color:#a58253}#reqin:focus{background:rgba(255,255,240,.85);border-bottom-style:solid}#reqin:disabled{opacity:.5}
+#pen{position:absolute;right:12px;bottom:12px;z-index:4;width:50px;height:50px;padding:0;border-radius:50%;font-size:24px;line-height:1;background:#fff7e0;border:3px solid #b9a98a;box-shadow:0 4px 0 #a8956c,0 8px 14px rgba(60,40,20,.3)}
+#pen:not(:disabled):hover{transform:translateY(-2px) rotate(-8deg)}
+#decree{position:absolute;inset:0;z-index:6;display:none;align-items:center;justify-content:center;background:rgba(40,28,14,0);transition:background .35s}
+#decree.open{display:flex;background:rgba(40,28,14,.5)}
+#decree .scroll{width:min(88%,380px)}
+#decree .parch{overflow:hidden;padding-top:16px;padding-bottom:14px}
+#decree.open .parch{animation:unrollM .8s cubic-bezier(.2,.8,.2,1) both}
+#decree.closing .parch{animation:unrollM .45s cubic-bezier(.6,0,.8,.4) reverse both}
+@keyframes unrollM{from{max-height:0;padding-top:0;padding-bottom:0;opacity:.5}to{max-height:300px;opacity:1}}
+#decree .row{display:flex;gap:8px;margin-top:12px}#decree .row button{flex:1;padding:10px 8px;font-size:14px}
+#reqx{background:#efe3c8;box-shadow:0 3px 0 #bfa877}
+#seal{background:radial-gradient(circle at 35% 30%,#ef6b5d,#b3261e 60%,#7d1510);color:#ffe9c4;font-family:Georgia,serif;box-shadow:0 3px 0 #5e0f0b}
+.sign{display:none;align-items:center;justify-content:center;gap:10px;margin-top:8px}.sign.on{display:flex}.sign em{font-size:11px;color:#8a6232}
+.sign i{font:italic 600 21px "Brush Script MT","Segoe Script","Snell Roundhand","Apple Chancery",cursive;color:#2b3a8a;transform:rotate(-3deg);border-bottom:1px solid #2b3a8a55;padding:0 4px}
+.stamp{width:44px;height:44px;border-radius:50%;border:3px double #c0392b;color:#c0392b;font:700 9px/1.1 Georgia,serif;display:grid;place-items:center;text-align:center;transform:rotate(-14deg);opacity:.88;letter-spacing:.04em}
+.sign.on .stamp{animation:stampin .45s cubic-bezier(.2,1.6,.4,1) .6s both}
+@keyframes stampin{from{transform:rotate(-14deg) scale(2.6);opacity:0}to{transform:rotate(-14deg) scale(1);opacity:.88}}
+.parch.unroll{animation:unroll .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes unroll{from{transform:scaleY(.15);opacity:.4}to{transform:scaleY(1);opacity:1}}
+#go{position:relative;margin-top:12px;background:radial-gradient(circle at 35% 30%,#ef6b5d,#b3261e 60%,#7d1510);color:#ffe9c4;font-family:Georgia,serif;letter-spacing:.06em;box-shadow:0 4px 0 #5e0f0b,0 8px 10px rgba(90,20,15,.35);text-shadow:0 1px 1px rgba(0,0,0,.4);border-radius:30px 26px 32px 28px/28px 32px 26px 30px;transition:transform .12s}
+#go:not(:disabled):hover{transform:translateY(-2px) rotate(-1deg)}#go:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 #5e0f0b}
+
+#card{display:none;position:absolute;left:10px;right:10px;bottom:74px;z-index:7;max-height:58%;overflow:auto;background:#fff;border-radius:14px;padding:12px;border:3px solid var(--bad);box-shadow:0 8px 24px rgba(40,28,14,.4)}
+#card.gate{border-color:var(--accent)}
+#card h3{margin:0 0 4px;font-size:17px}#card p{margin:0 0 8px;font-size:14px}
+#card .opts{display:flex;flex-direction:column;gap:6px}
+#card button{text-align:left;background:#f3ead9;box-shadow:none;border:2px solid var(--line);font-size:14px}
+#card button.wrong{background:#ffd1dc;text-decoration:line-through}
+#profile{position:absolute;left:8px;right:8px;bottom:8px;z-index:5;max-height:48%;overflow:auto;box-shadow:0 6px 22px rgba(60,40,20,.35);background:#fffaf0}
+#pf-x{position:absolute;right:8px;top:8px;width:30px;height:30px;padding:0;border-radius:50%;font-size:14px;line-height:1;background:#fff;border:2px solid var(--line);color:#4a3b52;cursor:pointer;box-shadow:none}
+#profile .top{padding-right:34px;display:flex;gap:10px;align-items:center}
+#profile svg{width:84px;height:92px;background:#e9f3f0;border-radius:12px;flex:none}
+#profile h3{margin:0;font-size:18px}
+#profile .role{font-weight:700;color:#7a5c9a;font-size:14px}
+#profile .meta{font-size:13px;opacity:.8}
+#profile p{margin:8px 0 4px;font-size:13px}
+#profile ul{margin:0 0 6px;padding-left:18px;font-size:13px}
+#profile .status{font-size:12px;background:#f3ead9;border-radius:8px;padding:4px 8px}
+#clock,#wx,#lang,#snd{position:absolute;left:12px;width:38px;height:38px;display:grid;place-items:center;background:#fffaf0;border:2px solid #e3d6bd;border-radius:50%;font-size:19px;line-height:1;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(60,40,20,.2)}
+#clock{top:12px}
+#clock.pv::after,#wx.pv::after{content:"";position:absolute;right:-1px;top:-1px;width:10px;height:10px;border-radius:50%;background:#ffb84d;border:2px solid #fff}
+#log{background:#4a3b52;color:#fff;border-radius:12px;padding:8px;height:150px;overflow:auto;font:12px/1.5 ui-monospace,monospace}
+#log p{margin:0}.ok{color:#7ff0c3}.bad{color:#ff9ab3}.warn{color:#ffd98a}
+
+/* SVG animation */
+svg .catin{transform-box:fill-box;transform-origin:50% 100%}
+svg .c .catin{animation:breathe 2.6s ease-in-out infinite}
+svg .c.active .catin{animation:type .3s ease-in-out infinite}
+svg .c.bug .catin{animation:shake .25s linear infinite}
+svg .c.cheer .catin{animation:hop .5s ease-in-out infinite}
+svg .c.stretch .catin{animation:stretch .9s ease-in-out}
+svg .alert,svg .okb{display:none}
+svg .c.bug .alert,svg .c.done .okb{display:block}
+svg .ring{opacity:0}svg .c.sel .ring{opacity:1}
+svg .lp.back .lid polygon:first-child{fill:#b8bcc6}
+svg .lp.front .lid polygon:first-child{fill:#33d1b0}
+svg .lp.back.active .lid polygon:first-child{fill:#ffd166}
+svg .lp.active .lid{animation:glow .4s alternate infinite}
+svg .lp.bug .lid polygon:first-child{fill:#ff6b88}
+svg #cwalk.walk{animation:walk .22s ease-in-out infinite}
+svg #cwalk.eat{animation:type .7s ease-in-out infinite}
+svg #cwalk.play{animation:hop .6s ease-in-out infinite}
+svg .c.walking .catin{animation:walk .22s ease-in-out infinite}
+svg .c.a-eat .catin{animation:type .7s ease-in-out infinite}
+svg .c.a-play .catin{animation:hop .6s ease-in-out infinite}
+svg .armL,svg .armR,svg .legL,svg .legR{transform-box:fill-box;transform-origin:50% 8%}
+svg .legL,svg .legR{transform-origin:50% 0}
+svg .shut,svg .claws{opacity:0}
+svg .a-type .armL,svg #cwalk.type .armL{animation:tapL .2s ease-in-out infinite}
+svg .a-type .armR,svg #cwalk.type .armR{animation:tapL .2s ease-in-out infinite .1s}
+svg .a-type .catin{animation:typeB .6s ease-in-out infinite}
+svg .a-scratch .armR,svg #cwalk.scratch .armR{animation:claw .26s ease-in-out infinite alternate}
+svg .a-scratch .armL,svg #cwalk.scratch .armL{animation:claw2 .26s ease-in-out infinite alternate .13s}
+svg .a-scratch .claws,svg #cwalk.scratch .claws{animation:clawf .26s steps(2) infinite alternate}
+svg .a-scratch .catin,svg #cwalk.scratch .catin{animation:lean .52s ease-in-out infinite}
+svg .a-lie .eyes,svg .a-nap .eyes,svg #cwalk.nap .eyes{opacity:0}
+svg .a-lie .shut,svg .a-nap .shut,svg #cwalk.nap .shut{opacity:1}
+svg .a-lie .catin,svg .a-nap .catin,svg #cwalk.nap .catin{animation:snore 3.2s ease-in-out infinite;transform:none}
+svg .a-lie .tail,svg .a-nap .tail{animation-duration:4.5s}
+svg .a-lie .armL,svg .a-lie .armR{transform:rotate(14deg)}
+svg .a-swim .armL{animation:paddleL .9s ease-in-out infinite}
+svg .a-swim .armR{animation:paddleR .9s ease-in-out infinite .45s}
+svg .a-swim .legL{animation:kick .45s ease-in-out infinite alternate}
+svg .a-swim .legR{animation:kick .45s ease-in-out infinite alternate-reverse}
+svg .a-swim .catin{animation:swimb 1.8s ease-in-out infinite}
+svg .a-float .armL{animation:drift 3s ease-in-out infinite alternate}
+svg .a-float .armR{animation:drift 3s ease-in-out infinite alternate-reverse}
+svg .a-float .legL,svg .a-float .legR{animation:kick 2.4s ease-in-out infinite alternate}
+svg .a-wave .armR{animation:wave .32s ease-in-out infinite alternate;transform:rotate(-140deg)}
+@keyframes tapL{50%{transform:translateY(-4px) rotate(-12deg)}}
+@keyframes typeB{50%{transform:translateY(-1px) rotate(.8deg)}}
+@keyframes claw{from{transform:rotate(-150deg)}to{transform:rotate(-100deg) translateY(2px)}}
+@keyframes claw2{from{transform:rotate(60deg)}to{transform:rotate(15deg)}}
+@keyframes clawf{from{opacity:.95}to{opacity:.15}}
+@keyframes lean{50%{transform:rotate(4deg) translateX(2px)}}
+@keyframes snore{50%{transform:scale(1.04,.96)}}
+@keyframes paddleL{0%,100%{transform:rotate(30deg)}50%{transform:rotate(-70deg)}}
+@keyframes paddleR{0%,100%{transform:rotate(-30deg)}50%{transform:rotate(70deg)}}
+@keyframes kick{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}
+@keyframes swimb{50%{transform:translateY(-2px) rotate(-1.5deg)}}
+@keyframes drift{from{transform:rotate(12deg)}to{transform:rotate(36deg)}}
+@keyframes wave{from{transform:rotate(-150deg)}to{transform:rotate(-105deg)}}
+svg .yawn,svg .tongue{opacity:0;transform-box:fill-box;transform-origin:50% 0}
+svg .a-yawn .yawn{animation:yawn 2.2s ease-in-out}
+svg .a-yawn .catin{animation:yawnb 2.2s ease-in-out}
+svg .a-yawn .eyes{animation:yawne 2.2s ease-in-out}
+svg .a-yawn .armR{animation:yawna 2.2s ease-in-out}
+svg .a-groom .catin{animation:groomb 1.1s ease-in-out infinite}
+svg .a-groom .armR{transform:rotate(-155deg) translate(-4px,2px);animation:lick .5s ease-in-out infinite alternate}
+svg .a-groom .tongue{animation:lickt .5s ease-in-out infinite alternate}
+svg .a-dance .catin{animation:dance .6s ease-in-out infinite}
+svg .a-dance .armL{animation:dL .6s ease-in-out infinite}
+svg .a-dance .armR{animation:dR .6s ease-in-out infinite}
+svg .a-dance .legL{animation:kick .3s ease-in-out infinite alternate}
+svg .a-dance .legR{animation:kick .3s ease-in-out infinite alternate-reverse}
+svg .a-dance .tail{animation-duration:.4s}
+svg .c.cheer .armL{animation:dL .5s ease-in-out infinite}
+svg .c.cheer .armR{animation:dR .5s ease-in-out infinite}
+svg .a-eat .armL,svg .a-eat .armR,svg #cwalk.eat .armL,svg #cwalk.eat .armR{animation:munch .7s ease-in-out infinite}
+@keyframes yawn{0%,100%{opacity:0;transform:scaleY(.1)}30%,70%{opacity:1;transform:scaleY(1.5)}}
+@keyframes yawnb{30%,70%{transform:scale(1.05,1.07)}}
+@keyframes yawne{25%,75%{transform:scaleY(.15)}}
+@keyframes yawna{25%,75%{transform:rotate(-140deg) translate(-3px,3px)}}
+@keyframes groomb{50%{transform:rotate(-3deg)}}
+@keyframes lick{from{transform:rotate(-155deg) translate(-4px,2px)}to{transform:rotate(-165deg) translate(-4px,0)}}
+@keyframes lickt{from{opacity:0}to{opacity:1}}
+@keyframes dance{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-7px) rotate(5deg)}}
+@keyframes dL{0%,100%{transform:rotate(150deg)}50%{transform:rotate(95deg)}}
+@keyframes dR{0%,100%{transform:rotate(-95deg)}50%{transform:rotate(-150deg)}}
+@keyframes munch{0%,100%{transform:rotate(0)}50%{transform:rotate(-125deg) translate(-2px,2px)}}
+svg #tags{pointer-events:none}
+svg .tag{filter:drop-shadow(0 1px 2px rgba(40,50,90,.22))}
+svg .tag rect{backdrop-filter:blur(4px)}
+svg .boss.talk .catin{animation:type .35s ease-in-out infinite}
+svg .swing{transform-box:fill-box;transform-origin:50% 0;animation:swing 2s ease-in-out infinite alternate}
+svg .tail{transform-box:fill-box;transform-origin:0% 100%;animation:wag 1.8s ease-in-out infinite alternate;animation-delay:var(--d,0s)}
+svg .eyes{transform-box:fill-box;transform-origin:50% 50%;animation:blink 4.6s infinite;animation-delay:var(--d,0s)}
+svg #zzz{display:none;animation:float 1.4s ease-in-out infinite}
+svg .furn,svg .c,svg .boss,svg #courier{cursor:pointer}
+svg .umb{transform-origin:0 0;animation:umb 3.2s ease-in-out infinite alternate}
+svg .ball{transform-origin:640px 468px;animation:roll 2.6s ease-in-out infinite alternate}
+svg .star{animation:twinkle 3s ease-in-out infinite alternate}
+#chat{pointer-events:none}
+.snowcap{opacity:0;transition:opacity 5s}svg.snowy .snowcap{opacity:1}
+.puddle{opacity:0;transition:opacity 6s}svg.rainy .puddle{opacity:1}
+.ripple{transform-box:fill-box;transform-origin:center;animation:ripple 1.6s ease-out infinite}
+@keyframes ripple{from{transform:scale(.2);opacity:.9}to{transform:scale(1);opacity:0}}
+#wx{top:56px}
+#snd{top:144px;padding:0}
+#lang{top:100px;font:700 12px system-ui,sans-serif;color:#7a5c3a;padding:0}
+.rain{animation:rainY linear infinite}
+.snow{animation:snowY linear infinite}
+@keyframes rainY{from{transform:translate(0,-80px)}to{transform:translate(-90px,1000px)}}
+@keyframes snowY{0%{transform:translate(0,-40px)}50%{transform:translate(22px,460px)}100%{transform:translate(-8px,1000px)}}
+@keyframes flash{0%{opacity:0}8%{opacity:.85}18%{opacity:.1}30%{opacity:.7}100%{opacity:0}}
+#flash.go{animation:flash .7s ease-out}
+svg.stormy .sway{animation-duration:.9s!important}svg.stormy .frond{animation-duration:.45s!important}
+svg.stormy .umb{animation-duration:.7s!important}svg.stormy .wind{animation-duration:1.6s!important;opacity:.9}
+@keyframes umb{from{transform:rotate(-2deg)}to{transform:rotate(3.5deg)}}
+@keyframes roll{from{transform:translateX(-12px) rotate(-150deg)}to{transform:translateX(14px) rotate(170deg)}}
+@keyframes twinkle{from{opacity:.25}to{opacity:1}}
+svg .sway{transform-origin:0 0;animation:sway 3.4s ease-in-out infinite alternate}
+svg .frond{transform-origin:4px -80px;animation:frond 1.7s ease-in-out infinite alternate}
+svg .wind{animation:windX 5s linear infinite;opacity:0}
+@keyframes sway{from{transform:rotate(-2.5deg)}to{transform:rotate(3deg)}}
+@keyframes frond{from{transform:rotate(-6deg)}to{transform:rotate(7deg)}}
+@keyframes windX{0%{transform:translateX(-120px);opacity:0}15%{opacity:.8}85%{opacity:.8}100%{transform:translateX(900px);opacity:0}}
+svg .beam{fill:var(--beamc,#fff3c4);opacity:var(--beam,.18)}
+svg .wavel{animation:waveL 7s linear infinite}
+@keyframes waveL{to{stroke-dashoffset:-1000}}
+svg .wave{animation:waveX 4s linear infinite}
+svg .cloud{animation:cloudX 110s linear infinite}
+svg .gull{animation:cloudX 38s linear infinite}
+svg.zoomed :is(.wvin,.cloud,.gull,.wind,.wavel,.ringf,.boat,.foam,.sunray,.sway,.frond,.star,.wave,.umb,.ball,.ripple,.puddle,.sparkle){animation:none!important}
+svg.moving [filter]{filter:none}
+svg .ringf{animation:bob 3.4s ease-in-out infinite alternate}
+svg .wvin{animation:wvin 8s ease-in-out infinite}
+@keyframes wvin{0%{transform:translate(-26px,-40px);opacity:0}25%{opacity:1}75%{opacity:1}100%{transform:translate(18px,28px);opacity:0}}
+svg .lamp-ok{fill:#43e08a}svg .lamp-busy{fill:#ffb347;animation:lampb .7s ease-in-out infinite alternate}
+@keyframes lampb{from{opacity:.35}to{opacity:1}}
+svg .sparkle{transform-box:fill-box;transform-origin:50% 50%;animation:spk 1.8s ease-in-out infinite alternate}
+@keyframes spk{from{transform:scale(.4) rotate(0);opacity:.3}to{transform:scale(1.15) rotate(25deg);opacity:1}}
+svg .swirl{animation:swirl 6s ease-in-out infinite alternate}
+@keyframes swirl{from{transform:translateX(-10px);opacity:.5}to{transform:translateX(12px);opacity:1}}
+svg .boat{transform-box:fill-box;transform-origin:50% 100%;animation:bob 3s ease-in-out infinite alternate}
+svg .foam{animation:foam 3s ease-in-out infinite alternate}
+svg .sunray{transform-box:fill-box;transform-origin:50% 50%;animation:pulse 5s ease-in-out infinite alternate}
+@keyframes waveX{to{transform:translateX(80px)}}
+@keyframes cloudX{from{transform:translateX(-300px)}to{transform:translateX(1200px)}}
+@keyframes bob{to{transform:translateY(3px) rotate(2.5deg)}}
+@keyframes foam{to{transform:translateY(5px);opacity:.6}}
+@keyframes pulse{to{transform:scale(1.12);opacity:.75}}
+@keyframes ring{50%{transform:rotate(-8deg) scale(1.1)}}
+@keyframes stretch{40%{transform:scale(1.12,.88)}70%{transform:scale(.94,1.1)}}
+@keyframes scratch{25%{transform:translateX(-3px) rotate(-4deg)}75%{transform:translateX(3px) rotate(4deg)}}
+@keyframes swing{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+@keyframes wag{from{transform:rotate(-7deg)}to{transform:rotate(11deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes float{50%{transform:translateY(-6px)}}
+@keyframes breathe{50%{transform:scaleY(1.04)}}
+@keyframes type{50%{transform:translateY(-3px)}}
+@keyframes shake{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@keyframes hop{50%{transform:translateY(-8px)}}
+@keyframes walk{50%{transform:translateY(-4px) rotate(3deg)}}
+@keyframes glow{to{filter:brightness(1.45)}}
+/* compact, translucent menu: small icons laid out in a row */
+#clock,#wx,#lang,#snd{top:10px;width:28px;height:28px;font-size:14px;border-width:1.5px;opacity:.6;box-shadow:0 1px 4px rgba(60,40,20,.15);transition:opacity .15s}
+#lang{font:700 10px system-ui,sans-serif}
+#clock{left:10px}#wx{left:42px}#lang{left:74px}#snd{left:106px}
+#clock:hover,#wx:hover,#lang:hover,#snd:hover,#steps:hover,#logbtn:hover,#pen:hover,#zoomc button:hover{opacity:1}
+#steps{left:10px;top:44px;flex-direction:row;gap:5px;opacity:.6;transition:opacity .15s}
+#steps span{width:26px;height:26px;box-shadow:0 1px 4px rgba(60,40,20,.2)}
+#steps span b{font-size:14px}
+#steps span::after{left:50%;top:34px;transform:translateX(-50%)}
+#logbtn{width:32px;height:32px;font-size:15px;border-width:2px;opacity:.7;box-shadow:0 2px 0 #a8956c,0 3px 8px rgba(60,40,20,.2)}
+#pen{right:52px;top:12px;bottom:auto;width:32px;height:32px;font-size:15px;border-width:2px;opacity:.7;box-shadow:0 2px 0 #a8956c,0 3px 8px rgba(60,40,20,.2)}
+#zoomc button{width:28px;height:28px;font-size:14px;opacity:.6;box-shadow:0 1px 4px rgba(60,40,20,.15)}
+#sagebox{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:min(430px,calc(100% - 24px));display:none;flex-direction:column;background:#fffaf0;border:3px solid #8b7bd6;border-radius:16px;box-shadow:0 8px 24px rgba(40,30,70,.35);z-index:7;font:14px/1.4 system-ui,sans-serif;color:#3c3052}
+#sagebox.on{display:flex}
+#sagebox header{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#ece8fb;border-radius:12px 12px 0 0;font-weight:700}
+#sagebox header span{flex:1}
+#sagex{width:26px;height:26px;padding:0;border-radius:50%;font-size:13px;line-height:1;background:#fff;border:2px solid #cfc7ef;box-shadow:none}
+#sagemsgs{overflow:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px;height:210px}
+.sm{max-width:88%;padding:6px 10px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
+.sm.bot{background:#ece8fb;align-self:flex-start}.sm.me{background:#ffe9b8;align-self:flex-end}
+#sagechips{display:flex;flex-wrap:wrap;gap:5px;padding:0 10px 6px}
+#sagechips button{flex:0 0 auto;width:auto;padding:3px 9px;font-size:12px;border-radius:12px;background:#fff;border:2px solid #d8cffa;box-shadow:none;font-weight:600}
+#sageform{display:flex;gap:6px;padding:8px 10px;border-top:2px dashed #e3d6bd}
+#sagein{flex:1 1 0;width:auto;min-width:0;padding:7px 10px;border:2px solid #d8cfa8;border-radius:10px;font:inherit;font-size:16px;background:#fff;color:inherit}
+#sageform button{flex:0 0 auto;width:auto;padding:6px 12px;font-size:14px;border-radius:10px;background:#8b7bd6;color:#fff;border:0;box-shadow:none}
+svg .sage{cursor:pointer}
+</style>
+<link rel="stylesheet" href="ui2.css">
+<link rel="stylesheet" href="worldmap.css">
+<link rel="stylesheet" href="playbook.css">
+</head>
+<body>
+
+<div class="layout">
+  <main>
+    <div id="stage">
+      <svg id="scene" viewBox="60 -120 900 1190" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="panel" id="profile" style="display:none">
+      <button id="pf-x" title="Close" aria-label="Close">✕</button><div class="top"><svg id="pf-av" viewBox="-42 -78 84 92"></svg>
+        <div><h3 id="pf-name"></h3><div class="role" id="pf-role"></div><div class="meta" id="pf-age"></div></div></div>
+      <div id="pf-stats"></div><div id="pf-model"></div><p id="pf-bio"></p><ul id="pf-duty"></ul><div class="status" id="pf-status"></div>
+    </div>
+      <button id="pen" title="Write a request" aria-label="Write a request">✒️</button>
+      <div id="decree"><div class="scroll"><div class="rod"></div><div class="parch"><small>📜 Write your request</small>
+        <textarea id="reqin" rows="3" maxlength="240" placeholder="Write the request… more lines are fine (blank = random). Ctrl+Enter to send."></textarea>
+        <div class="sign" id="sign"><em>Requested by</em><i>Miss Big Na</i><div class="stamp">MISS<br>BIG NA<br>✔</div></div>
+        <div class="row"><button id="reqx" type="button">Cancel</button><button id="seal" type="button">✒️ Sign &amp; send</button></div></div><div class="rod"></div></div></div>
+      <div id="steps" class="steps"></div>
+      <button id="logbtn" title="Activity log" aria-label="Activity log">📜</button>
+      <div id="logpop"><div class="lh"><span id="phone" title="Phone sync: pings when push, deploy or verify finishes">📱 Remote sync</span><button id="logx" aria-label="Close log">✕</button></div><div id="log"></div></div>
+      <div id="card"></div>
+      <div id="clock" title="Click to preview the time of day">🕒</div><div id="wx" title="Click to change the weather">⛅</div><button id="lang" type="button" title="Language / Ngôn ngữ"></button><button id="snd" type="button"></button>
+    </div>
+  </main>
+</div>
+<button id="go" hidden>start</button>
+
+<script src="i18n-vi.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+// Vietnamese is the default language; EN/VI toggle reloads the page. T() looks a string up in VI ({0},{1} are filled from the extra args).
+const LANG=(()=>{try{return localStorage.getItem('lang')||'vi'}catch(e){return 'vi'}})();
+const T=(s,...a)=>{let r=LANG==='vi'&&VI[s]!==undefined?VI[s]:s;a.forEach((v,i)=>{r=r.split('{'+i+'}').join(v)});return r};
+document.documentElement.lang=LANG;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+// hooks into the UI layer (ui2.js); harmless when it is not loaded
+const UIEV=(...a)=>{try{window.UI&&UI.ev&&UI.ev(...a)}catch(e){}};
+async function UIcp(){if(!window.UI)return true;while(UI.paused)await sleep(200);return !UI.cancelled}
+
+/* ---------- Content (HCPH workflow) ---------- */
+const QUESTS=["Enable direct-CL cart on UAT","Fix PSGC Manila self-parent","Add a new brand on DEV",
+  "Cut Commerce Layer calls per action","Cache product-display","Update checkout-flow docs",
+  "Throttle background sync under 429"];
+
+const STEPS=[
+  {id:'ba',  name:'Understand',icon:'🧐',say:'Restate the ask in one line',log:'Read CLAUDE.md + docs/checkout-flow.md',
+   who:{name:'Na',age:29,role:'Business Analyst',bio:'Has read CLAUDE.md. Well, the title. Writes her resignation letter every Monday and files it under "someday".',
+     duties:['Read CLAUDE.md and docs/checkout-flow.md (yes, the whole thing, ugh)','Find the right hc-docs-lm page before anyone panics','Only bug the boss when it is truly the boss\'s call. Naps are not.']},
+   cat:{body:'#f6a54a',outfit:'#e0457b',acc:['glasses','crown','pearls','matcha'],star:1}},
+  {id:'inv', name:'Investigate',icon:'🔎',say:'Prove it with data, not guesses',log:'Investigating with HAR files and logs',
+   who:{name:'Sniffy',age:41,role:'Investigator',bio:'Sniffs out bugs like a cat sniffs out tuna. Believes one reproducing request over ten confident theories.',
+     duties:['Read HAR files and logs until they confess','Prove the cause with ONE reproducing request','Never guess. "It was product search!" cost us an afternoon once.']},
+   cat:{body:'#9aa3ad',outfit:'#7a5c3a',acc:['detective','lens']},
+   incident:{p:.45,title:'💥 Public pod OOM (exit 3) under load',text:'Cause unknown. What do you do?',
+     opts:[['Guess: it must be product search',0,'A wrong guess cost time before (rule 10).'],
+           ['Reproduce with ONE request to the suspect URL',1,'One GET hangs ~60s then 502 → the PSGC loop.'],
+           ['Raise the heap until it stops',0,'Hides the symptom, finds no cause.']]}},
+  {id:'dev', name:'Code',icon:'💻',say:'Working in my own worktree',log:'Coding in a worktree, staging files explicitly',
+   who:{name:'Cody',age:26,role:'Developer',bio:'Types at the speed of a cat chasing a laser dot. Comments rarely, and only the "why".',
+     duties:['Work in a git worktree, a tidy little litter box','Stage files one by one, no "git add ." zoomies','Comments: 1-3 lines, English, only the "why"']},
+   cat:{body:'#f3e0bd',outfit:'#6b5b95',acc:['headset']}},
+  {id:'docs',name:'Docs',icon:'📝',say:'Docs ship with the code',log:'Updating hc-docs-lm + data/*.json',
+   who:{name:'Docsy',age:31,role:'Technical Writer',bio:'Believes undocumented behaviour does not exist. Will happily write a README at 3 a.m. while sipping latte.',
+     duties:['Update hc-docs-lm in the same task, no "later"','Bump "updated" in docs.json (the cat remembers)','Never push a docs-only frontend commit, not even a little one']},
+   cat:{body:'#f7f7f7',outfit:'#e0709a',acc:['bow']}},
+  {id:'rev', name:'Review',icon:'🔍',say:'Reading the diff before pushing',log:'Reviewing the diff',
+   who:{name:'Re-Mew',age:47,role:'Code Reviewer',bio:'Reads every diff twice, the second time with a monocle and a grudge. Purrs only at tiny PRs.',
+     duties:['Review the diff before any push, no exceptions','Evict unrelated changes (looking at you, pom.xml)','Make sure QA-facing contracts stay unchanged']},
+   cat:{body:'#a47551',outfit:'#3d8b7a',acc:['monocle']},
+   incident:{p:.4,title:'🧹 Diff contains pom.xml and hcph-docs-assistant/',text:'Those are someone else\'s unfinished changes.',
+     opts:[['git add -A, ship it',0,'Rule 6: leave unrelated working-tree changes alone.'],
+           ['Stage only this task\'s files',1,'Right: use a worktree and stage explicitly.']]}},
+  {id:'git', name:'Push',icon:'📦',say:'Waiting for the boss to say "push"',log:'Push: feature → e2e/dev → dev',
+   who:{name:'Pushy',age:33,role:'Release Engineer',bio:'Paw hovers over the push button, sweating, until somebody says a clear "go".',
+     duties:['Push only when asked. Staring at the button is free.','Flow: feature → e2e/dev → dev','Never force-push shared branches. Ever. Nope.']},
+   cat:{body:'#4b4453',outfit:'#2d6cdf',acc:['cap']},
+   gate:{title:'🔐 Permission to push?',text:'Rule 2: never push, merge or open an MR unless asked. Allow the push to deployment/e2e/dev? (Anything into main needs a separate ask, and the cats never deploy it.)',ok:'Allow push',no:'Not yet — cancel quest'}},
+  {id:'ops', name:'Deploy',icon:'🚀',say:'deploy-dev is a manual job',log:'Pressing the manual deploy-dev job',
+   who:{name:'Launchy',age:38,role:'DevOps Engineer',bio:'Keeps the activation keypair runbook under the pillow and a fire extinguisher under the desk.',
+     duties:['Deploy DEV only — never main or production','Press deploy-dev only with permission (a manual job, no big red panic button)','Follow the activation-keypair runbook, page by page','Hand kubectl commands to the human. Cats do not guess.']},
+   cat:{body:'#e9a15e',outfit:'#f2c230',acc:['hardhat']},
+   incident:{p:.35,title:'🔑 Publish fails: "RSA verification failed"',text:'After the deploy, author → public activation breaks.',
+     opts:[['Redeploy until the error goes away',0,'Every deploy re-copies the key; it won\'t heal itself.'],
+           ['Compare key sha256 per the runbook, resync publicKey',1,'Right: follow activation-keypair-runbook.']]},
+   gate:{title:'🔐 Permission to deploy?',text:'Deploy DEV only when the user allows it (no GitLab token here — a human presses the button). Main and production are never deployed by the cats.',ok:'Allow DEV deploy',no:'Not yet — cancel quest'}},
+  {id:'qa',  name:'Verify',icon:'✅',say:'Never say "verified" without running it',log:'Running the Playwright suite on the environment',
+   who:{name:'Testy',age:27,role:'QA Engineer',bio:'Trusts nothing that has not run twice. Has been known to click the same button 40 times, just in case.',
+     duties:['Run the Playwright suite on the environment','Never say "verified" without running it','List the test data to clean up, no crumbs left behind']},
+   cat:{body:'#8fa7c9',outfit:'#59b59a',acc:['clipboard']},
+   incident:{p:.45,title:'⛔ Commerce Layer 429 — checkout is slow',text:'Rate limits are per IP. How do you respond?',
+     opts:[['Retry in a tight loop until it passes',0,'Burns the budget cart and checkout need.'],
+           ['Count CL calls per action, leave budget for the cart',1,'Right: uncacheable reads/writes are the real limit.'],
+           ['Ask CL to delete the rate limit',0,'Not an option, and not the fix.']]}}
+];
+const BOSS={name:'Lead Paw',age:45,role:'Project Lead',bio:'Hands out quests, holds the keys to every push and deploy, and says "per my last meow" a lot.',
+  duties:['Assign quests with great dramatic flair','Approve push and deploy, one at a time, slowly','PROD door is display only: no auto-deploy to main/production, an MR into main only after asking'],
+  cat:{body:'#ff9f5a',outfit:'#2f3a56',acc:['shades','tie','pointer']}};
+const CLAUDE={name:'Claude',age:1,role:'AI Pair Programmer',bio:'A very new cat (age 1!) who carries the ticket from desk to desk and naps after every quest.',
+  duties:['Carry the quest ticket between desks, fetch-style','Pair-code with Cody and pretend to be humble','Nap after every quest. Non-negotiable.']};
+
+STEPS.forEach(s=>{s.who.en=s.who.name;s.who.name=T(s.who.name)});BOSS.en=BOSS.name;BOSS.name=T(BOSS.name);
+
+/* ---------- Personalities and random chatter ---------- */
+// g = any time, m/d/s/n = morning/noon/sunset/night, rain/snow/storm = weather. sunset/snow/storm are also said while watching from the window.
+const VOICE={
+ ba:{trait:'Lazy to the bone and always ready to quit',
+  g:["I want to quit. Is it Friday yet?","Can we do this tomorrow? Or never?","I'll start right after this nap.","My resignation letter is 90% written.","Why work today when tomorrow exists?","Restating the ask… in one yawn.","Who needs a backlog? I need a hammock.","I read CLAUDE.md. By which I mean the title.","Maybe I could just become a beach cat full-time.","Meetings should be naps. Change my mind.","Thèm đi Đà Lạt quá… sương mù, dâu tây, sữa đậu nành nóng."],
+  m:["Morning?! Already?! I quit.","Five more minutes. Or five more years."],d:["It's noon. Surely it's time to go home.","Lunch! The only productive thing I do."],
+  s:["Sunset! Work is officially over. Right? Right?!","Finally, the sun agrees: time to quit."],n:["Why am I still here? I should have quit at noon.","Night shift?! That's it, I'm resigning."],
+  rain:["Rain! A perfect excuse to go home.","Too wet to work. Doctor's note: sky."],snow:["Snow day! Everyone's off, right? …Right?","It's snowing, so I'm legally unable to work."],storm:["Storm! Office closed. I'm leaving. Bye.","Thunder says: take the day off. Obey it."]},
+ inv:{trait:'Noir detective who suspects everything',
+  g:["Something doesn't add up…","The logs never lie. People do.","I smell a race condition.","Follow the request, find the culprit.","Coincidence? I don't believe in those.","Who touched the config last?","One reproducing request beats ten theories.","The cat knows more than he says. Meow.","Every bug leaves footprints.","I'll need that HAR file. Yesterday."],
+  m:["Morning light. Good for spotting clues.","Coffee. Black. Like my casebook."],d:["High noon. Nowhere to hide, bugs.","Lunch break. Suspicious tuna smell."],
+  s:["Sunset… the hour when cases go cold.","The sky is bleeding orange. Dramatic."],n:["Night shift. The best time to find a leak.","The moon is the only witness left."],
+  rain:["Rain on the glass. Perfect noir weather.","The rain washes away every clue but one."],snow:["Snow hides footprints. Annoying.","A white blanket over the crime scene."],storm:["A dark and stormy night, classic.","Thunder. Somebody just dropped prod."]},
+ dev:{trait:'Hyper-caffeinated, hyperfocused coder',
+  g:["One more commit, then lunch… probably.","Why does it work? Don't touch it.","Compiling… compiling… still compiling.","Tabs or spaces? Both, I'm chaos.","I'll comment the 'why'. Later.","git stash, git stash, git stash…","My worktree, my rules.","Zero warnings. Suspiciously zero.","*type type type* ⌨️","It works on my machine!"],
+  m:["Coffee #1 of the day, loading…","Morning! Already in the zone."],d:["Lunch? I'll eat at my desk. Again.","Peak productivity, don't talk to me."],
+  s:["Whoa, sunset! Pause the build.","I've been coding since sunrise. Whoops."],n:["Night mode: IDE and the whole office.","Just one more bug… it's midnight?"],
+  rain:["Rain sounds = best coding playlist.","Rain on the window, flow state unlocked."],snow:["Snow! Merge conflict from the sky!","Is the compiler snowing on us?"],storm:["Lightning? I committed already, right?!","If the power dies, my work dies. Saving!"]},
+ docs:{trait:'Gentle bookworm and perfectionist',
+  g:["Is this written down anywhere?","I bumped the 'updated' date. Twice.","Undocumented behaviour doesn't exist.","A good README is a hug.","Oxford comma, always.","Heading levels, please. In order.","I'll tidy the wording. Just one more pass.","Docs ship with the code, remember?","A typo! Where? There!","Let me write that down before we forget."],
+  m:["Morning! A fresh page awaits.","Tea and a clean changelog."],d:["Lunch with a good book, bliss.","Noon: the perfect time to proofread."],
+  s:["What a lovely sky. I could write a poem.","The sunset needs a caption."],n:["Moonlight is good for reading.","One more paragraph before bed…"],
+  rain:["Rain and a good book, perfection.","The rain sounds like soft typing."],snow:["Snow is a blank page! Beautiful.","Each snowflake is unique. Like our docs."],storm:["Thunder! Did I save the doc?","Don't worry, everything is in version control."]},
+ rev:{trait:'Grumpy old pedant, but fair',
+  g:["Read it twice. Adversarially.","Why is pom.xml in this diff?","Hmph. Not bad. Not good either.","In my day we reviewed by candlelight.","Naming things is hard. Do it better.","Where's the test? There's no test.","Unrelated changes, out! Out!","Small PRs. Small. PRs.","Looks fine. Which worries me.","I have… comments."],
+  m:["Too early for opinions. I have many anyway.","Morning. Don't send me a 40-file diff."],d:["Lunch. Do NOT send me a diff now.","Noon. My monocle needs polishing."],
+  s:["Hmph. A tolerable sunset.","Pretty. Needs a second reviewer."],n:["Night already? Approve and go home.","The moon is full. So is my review queue."],
+  rain:["Rain. At least it's consistent.","Hmph. The roof had better be tested."],snow:["Snow on a beach. Poorly reviewed weather.","Cold. Like my first comment on your PR."],storm:["Thunder, hmph. Who merged that?","Storms and unreviewed code: both dangerous."]},
+ git:{trait:'Anxious, careful, needs a clear "go"',
+  g:["Do I have the go? I need a clear go.","Wait, is it the right branch?","Never force-push. Never. Ever.","feature → e2e/dev → dev, got it.","My finger hovers over the button… 😰","Did anyone say 'push'? Anyone?","I double-checked. Let me triple-check.","Please don't rush me.","Merge conflict? My heart…","Who has the keys? Not me, I think."],
+  m:["Morning! Nobody say 'push' yet.","Branch is clean. For now."],d:["Lunch, but I'm watching the pipeline.","Nobody ask me for a release at noon."],
+  s:["Pretty… but did we tag the release?","The sunset is calming. Pipeline isn't."],n:["Please no pushes at night. Please.","I can't sleep. What if main moved?"],
+  rain:["Rain… hope the runners are dry.","Wet weather = flaky network. I'm nervous."],snow:["Snow! Our pipeline could freeze too…","So pretty, so cold, so many branches."],storm:["Thunder! Is the remote still reachable?!","Storm! Everybody pull, now! …wait, don't."]},
+ ops:{trait:'Laid-back sleepy sysadmin',
+  g:["It's fine. It's probably fine.","Have you tried turning it off and on?","Let me check the runbook… under my pillow.","Zzz… oh, just resting my eyes.","Deploy is manual. Take it slow.","The pod will recover. Eventually.","kubectl? Not before coffee.","Never deploy on a Friday. Or a Monday.","Is it a cluster… or a clutter?","Naps are a deployment strategy."],
+  m:["Five more minutes… zzz…","Morning. Already tired, feeling great."],d:["Noon nap. Wake me for fish.","Lunchtime. The cluster can wait."],
+  s:["Ahh, sunset. Hammock time.","The sky is on fire and I'm totally chill."],n:["Night. My favourite uptime.","Moon's out. I'm out. Zzz…"],
+  rain:["Rain. Nap weather.","Pitter-patter… the best lullaby."],snow:["Snow. Fluffy. Sleepy.","Cold weather, warm blanket, cold deploy."],storm:["Thunder. Is that my pager or the sky?","Storm? Fine. I have a runbook. Zzz."]},
+ qa:{trait:'Paranoid tester: trusts nothing until it runs twice',
+  g:["I'll run it again. Just to be sure.","Works once is not 'works'.","What if the user clicks twice?","Edge cases are my cardio.","Don't say 'verified' without running it.","I found… something. Don't panic.","Please clean up the test data.","Have you tried negative numbers?","Flaky? Or just lying?","Green tests make me nervous."],
+  m:["Morning! First test run, fingers crossed.","Fresh env, fresh bugs. Probably."],d:["Lunch? I'll test the sandwich first.","Noon check: still not trusting it."],
+  s:["The sunset looks fine. Let me recheck.","Beautiful. But did it pass twice?"],n:["Night run: when the real bugs wake up.","The moon is flaky today, I swear."],
+  rain:["Rain test: is the roof idempotent?","429 error from the sky: too many drops."],snow:["Snow! New edge case unlocked!","Freeze test passed. Surprisingly."],storm:["Chaos engineering, courtesy of the sky!","Lightning = surprise integration test."]},
+ boss:{trait:'Pompous but warm-hearted project lead',
+  g:["Team, I believe in you. Mostly.","Who wants a new quest? 📋","Prod door is just decoration. Hands off, my dear cats!","Halt! Nobody passes the PROD door. Not even me.","Lead Paw on guard. State your business, then leave.","Nobody touches PROD while I am on shift.","This door has one rule: ask me first. Then still no.","Remember: permission before push.","I'm not napping, I'm strategising.","A cat in time saves nine bugs.","Excellent work. Whatever it was.","My door is always open. Prod's door is not.","Tuna budget approved!","Synergy! …what does that mean again?"],
+  m:["Good morning, my magnificent staff!","Morning briefing: nap less, ship more."],d:["Lunch is on me. Tuna for everyone!","Noon. The sun salutes the team."],
+  s:["Ah, the boss-approved sunset.","Look, team: the sky is also meeting its deadline."],n:["Go home, team. That's an order.","Night. Even leaders curl up."],
+  rain:["Rain? Morale stays sunny!","Raindrops: nature's applause."],snow:["Snow on my beach? Impossible. Wonderful.","Who ordered winter? Put it on the budget."],storm:["Stay inside, team! Safety first!","A storm? I've survived worse meetings."]},
+ claude:{trait:'Curious, playful AI cat who carries every ticket',
+  g:["Meow? Is there a ticket for me?","I carried the ticket. Did I do it right?","Ooh, a yarn ball! …focus, focus.","Where did my paw go? Oh, there.","Purr-fect handoff, I think!","What does this button do?","I read CLAUDE.md. Twice. Purr.","Chasing the cursor. Chasing…","Is it nap time yet?","Let's pair-code! I'll watch the screen."],
+  m:["Good morning! Is it snack time?","Wake up, wake up, it's quest time!"],d:["The sun is warm. Nap spot found!","Noon! The best time for a sunbeam."],
+  s:["The sky is on fire! Is that okay?!","Sunset: the sky's loading screen."],n:["Stars! So many tiny lasers!","Moon! Can I catch it? Hmm, no."],
+  rain:["Drip drip! I'm staying dry. Meow.","Raindrops race down the glass!"],snow:["Cold fluffy stuff! Can I eat it?","Snow! I'm leaving paw prints, ha!"],storm:["Boom! I'm hiding under the desk!","The sky is mad at someone. Not me!"]}
+};
+
+/* ---------- Isometric helpers ---------- */
+const OX=420,OY=530,TW=40,TH=26,WALL=128,SEAT=-11,DD=5.2,FT=384; // FT: height of one storey (6 glass rows)
+const K=TH/TW; // screen slope of the room axes
+const P=(x,y,z=0)=>[OX+(x-y)*TW,OY+(x+y)*TH-z];
+const pts=a=>a.map(p=>p.map(n=>n.toFixed(1)).join(',')).join(' ');
+const poly=(a,fill,extra='')=>`<polygon points="${pts(a)}" fill="${fill}" ${extra}/>`;
+/* Material textures: tiny SVG patterns laid over a face and skewed to the isometric plane (T = top, L = front/back wall, R = right side). */
+const TEXS={
+  wood:[24,24,'<path d="M0 4 Q6 2 12 4 T24 4 M0 17 Q6 15 12 17 T24 17" stroke="#5b3a1c" stroke-opacity=".24" fill="none"/><path d="M0 10 Q6 12 12 10 T24 10" stroke="#5b3a1c" stroke-opacity=".17" fill="none"/><path d="M0 22 H24" stroke="#fff" stroke-opacity=".16"/><ellipse cx="16" cy="13.5" rx="2.6" ry="1.2" stroke="#5b3a1c" stroke-opacity=".22" fill="none"/>'],
+  fabric:[4,4,'<path d="M0 2 H4" stroke="#000" stroke-opacity=".12"/><path d="M2 0 V4" stroke="#fff" stroke-opacity=".18"/>'],
+  stone:[32,32,'<g fill="#6b6f78" fill-opacity=".28"><circle cx="4" cy="6" r=".8"/><circle cx="19" cy="3" r=".6"/><circle cx="27" cy="14" r=".9"/><circle cx="11" cy="21" r=".7"/><circle cx="23" cy="27" r=".6"/><circle cx="3" cy="29" r=".7"/></g><path d="M0 18 Q10 12 18 20 T32 14" stroke="#9aa3b4" stroke-opacity=".3" fill="none"/>'],
+  plaster:[40,40,'<g fill="#b8a583" fill-opacity=".22"><circle cx="5" cy="8" r=".8"/><circle cx="26" cy="5" r=".7"/><circle cx="34" cy="22" r=".9"/><circle cx="14" cy="30" r=".7"/><circle cx="21" cy="17" r=".6"/></g><g fill="#fff" fill-opacity=".3"><circle cx="12" cy="14" r=".9"/><circle cx="30" cy="34" r=".8"/><circle cx="3" cy="25" r=".7"/></g>'],
+  bead:[10,24,'<path d="M0 0 V24" stroke="#fff" stroke-opacity=".38"/><path d="M1.5 0 V24" stroke="#000" stroke-opacity=".08"/>'],
+  weave:[8,8,'<g fill="#fff" fill-opacity=".2"><rect width="4" height="4"/><rect x="4" y="4" width="4" height="4"/></g><g fill="#000" fill-opacity=".09"><rect x="4" width="4" height="4"/><rect y="4" width="4" height="4"/></g>']
+};
+const TEXF={T:'1 .65 -1 .65',L:'1 .65 0 1',R:'-1 .65 0 1'};
+const texDefs=()=>Object.entries(TEXS).map(([n,[w,h,c]])=>Object.entries(TEXF).map(([f,m])=>`<pattern id="t-${n}-${f}" width="${w}" height="${h}" patternUnits="userSpaceOnUse" patternTransform="matrix(${m} 0 0)">${c}</pattern>`).join('')).join('');
+const texOver=(a,tex,face,op=1)=>poly(a,`url(#t-${tex}-${face})`,op<1?`opacity="${op}" pointer-events="none"`:'pointer-events="none"');
+function box(x,y,w,d,h,[top,left,right],z0=0,tex=''){
+  const A=[P(x,y+d,z0),P(x+w,y+d,z0),P(x+w,y+d,z0+h),P(x,y+d,z0+h)],B=[P(x+w,y,z0),P(x+w,y+d,z0),P(x+w,y+d,z0+h),P(x+w,y,z0+h)],C=[P(x,y,z0+h),P(x+w,y,z0+h),P(x+w,y+d,z0+h),P(x,y+d,z0+h)];
+  return poly(A,left)+(tex?texOver(A,tex,'L'):'')
+        +poly(B,right)+(tex?texOver(B,tex,'R'):'')
+        +poly(C,top)+(tex?texOver(C,tex,'T'):'');
+}
+const depth=(x,y)=>y+x*.01;
+
+/* ---------- Cat drawing (feet at 0,0). back=true draws the cat seen from behind ---------- */
+function accessory(t){switch(t){
+  case'glasses':return'<g fill="none" stroke="#3a3040" stroke-width="1.6"><circle cx="-6" cy="-34" r="4.6"/><circle cx="6" cy="-34" r="4.6"/><line x1="-1.4" y1="-34" x2="1.4" y2="-34"/></g>';
+  case'tie':return'<polygon points="0,-25 -3,-21 0,-8 3,-21" fill="#d62839"/>';
+  case'detective':return'<path d="M-15 -44 Q0 -64 15 -44 Z" fill="#7a5c3a"/><rect x="-19" y="-45" width="38" height="4" rx="2" fill="#5e452a"/>';
+  case'lens':return'<circle cx="21" cy="-15" r="6" fill="#d7efff" stroke="#555" stroke-width="2"/><line x1="25" y1="-11" x2="31" y2="-4" stroke="#555" stroke-width="3" stroke-linecap="round"/>';
+  case'headset':return'<path d="M-15 -37 Q0 -60 15 -37" fill="none" stroke="#333" stroke-width="3"/><rect x="-18" y="-38" width="6" height="10" rx="3" fill="#333"/><rect x="12" y="-38" width="6" height="10" rx="3" fill="#333"/><path d="M-15 -28 Q-12 -22 -5 -23" fill="none" stroke="#333" stroke-width="2"/>';
+  case'bow':return'<polygon points="-9,-21 0,-17 -9,-13" fill="#e0457b"/><polygon points="9,-21 0,-17 9,-13" fill="#e0457b"/><circle cx="0" cy="-17" r="2.6" fill="#b02a5c"/>';
+  case'monocle':return'<circle cx="6" cy="-34" r="5.2" fill="none" stroke="#d4a017" stroke-width="1.8"/><path d="M11 -31 Q16 -22 13 -12" fill="none" stroke="#d4a017" stroke-width="1"/>';
+  case'cap':return'<path d="M-14 -43 Q0 -58 14 -43 Z" fill="#2d6cdf"/><rect x="8" y="-45" width="15" height="3.5" rx="1.7" fill="#1f4fa8"/>';
+  case'hardhat':return'<path d="M-15 -43 Q0 -63 15 -43 Z" fill="#ffc107"/><rect x="-18" y="-44" width="36" height="4.5" rx="2" fill="#e0a800"/>';
+  case'clipboard':return'<rect x="14" y="-24" width="13" height="17" rx="2" fill="#fff" stroke="#555"/><path d="M17 -16 l3 3 l5 -6" stroke="#06a77d" fill="none" stroke-width="2"/>';
+  case'shades':return'<rect x="-13" y="-38" width="26" height="7" rx="3.5" fill="#1d1a24"/><line x1="-13" y1="-35" x2="-17" y2="-37" stroke="#1d1a24" stroke-width="2"/>';
+  case'pointer':return'<line x1="14" y1="-18" x2="46" y2="-52" stroke="#8b5a2b" stroke-width="3" stroke-linecap="round"/>';
+  case'ticket':return'<g><rect x="-13" y="-72" width="26" height="17" rx="3" fill="#fff" stroke="#e09a2f" stroke-width="2"/><line x1="-8" y1="-67" x2="8" y2="-67" stroke="#aaa" stroke-width="2"/><line x1="-8" y1="-62" x2="3" y2="-62" stroke="#aaa" stroke-width="2"/></g><line x1="-8" y1="-55" x2="-6" y2="-48" stroke="#555"/><line x1="8" y1="-55" x2="6" y2="-48" stroke="#555"/>';
+  case'crown':return'<path d="M-10 -45 L-12 -58 L-6 -52 L0 -62 L6 -52 L12 -58 L10 -45Z" fill="#ffd447" stroke="#e0a800" stroke-width="1.2" stroke-linejoin="round"/><circle cx="0" cy="-54" r="1.8" fill="#e0457b"/><circle cx="-6" cy="-50" r="1.2" fill="#5fd0e0"/><circle cx="6" cy="-50" r="1.2" fill="#5fd0e0"/>';
+  case'pearls':return'<g fill="#fff" stroke="#e6d9e6" stroke-width=".6"><circle cx="-8" cy="-14" r="1.8"/><circle cx="-4" cy="-11.6" r="1.8"/><circle cx="0" cy="-10.8" r="1.8"/><circle cx="4" cy="-11.6" r="1.8"/><circle cx="8" cy="-14" r="1.8"/></g>';
+  case'matcha':return'<g><ellipse cx="17" cy="-13" rx="4" ry="3.4" fill="#f6a54a"/><path d="M18 -34 L32 -34 L30 -14 Q25 -11 20 -14 Z" fill="#fff" fill-opacity=".85" stroke="#cfd8dc" stroke-width="1"/><path d="M19 -26 L31 -26 L29.5 -15 Q25 -12.5 20.5 -15 Z" fill="#8fbf5a"/><path d="M19.5 -30 L30.5 -30 L31 -26 L19 -26Z" fill="#f4ecd8"/><rect x="17.5" y="-37" width="15" height="3.4" rx="1.7" fill="#fff" stroke="#cfd8dc" stroke-width=".8"/><line x1="27" y1="-37" x2="30" y2="-46" stroke="#6ab04c" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="17.5" cy="-20" rx="3.6" ry="3" fill="#f6a54a"/></g>';
+  case'gradcap':return'<path d="M-19 -46 L0 -55 L19 -46 L0 -39Z" fill="#2b2b3a"/><path d="M-10 -44 L-10 -38 Q0 -33 10 -38 L10 -44" fill="#3a3a4e"/><line x1="15" y1="-46" x2="19" y2="-35" stroke="#f2c230" stroke-width="1.6"/><circle cx="19" cy="-34" r="2.2" fill="#f2c230"/>';
+  case'book':return'<g transform="translate(16 -14)"><rect x="-7" y="-10" width="15" height="12" rx="1.5" fill="#e0457b"/><rect x="-7" y="-10" width="3.4" height="12" fill="#b02a5c"/><rect x="-2" y="-7" width="8" height="1.8" fill="#fff"/><rect x="-2" y="-4" width="6" height="1.8" fill="#fff"/></g>';
+  case'pack':return'<rect x="-20" y="-24" width="10" height="16" rx="4" fill="#d94f70"/>';
+  default:return''}}
+const BACK_OK=['detective','headset','cap','hardhat','crown','matcha','gradcap'];
+const lum=h=>{const n=parseInt(h.slice(1),16);return .299*(n>>16)+.587*((n>>8)&255)+.114*(n&255)};
+function catParts(c,back=false){
+  const wh=lum(c.body)<110?'#efe6f7':'#5a4a5e';
+  let s=(c.star?`<ellipse cx="0" cy="-22" rx="34" ry="38" fill="url(#naglow)"/><g fill="#ffe27a"><path class="sparkle" d="M-30 -52 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2Z"/><path class="sparkle" style="animation-delay:-.7s" d="M30 -44 l1.6 -5 l1.6 5 l5 1.6 l-5 1.6 l-1.6 5 l-1.6 -5 l-5 -1.6Z"/><path class="sparkle" style="animation-delay:-1.2s" d="M26 -10 l1.2 -4 l1.2 4 l4 1.2 l-4 1.2 l-1.2 4 l-1.2 -4 l-4 -1.2Z"/></g>`:'')+`<g class="tail"><path d="M13 -8 Q34 -10 28 -30" fill="none" stroke="${c.body}" stroke-width="7" stroke-linecap="round"/></g>`
+   +`<g class="legL"><ellipse cx="-7" cy="-1" rx="6" ry="3.5" fill="${c.body}"/></g><g class="legR"><ellipse cx="7" cy="-1" rx="6" ry="3.5" fill="${c.body}"/></g>`
+   +`<ellipse cx="0" cy="-14" rx="16" ry="14" fill="${c.body}"/>`
+   +`<g class="armL"><rect x="-18.5" y="-20" width="6.4" height="15" rx="3.2" fill="${c.body}"/><ellipse cx="-15.3" cy="-5.5" rx="3.6" ry="2.8" fill="${c.body}"/></g>`
+   +`<g class="armR"><rect x="12.1" y="-20" width="6.4" height="15" rx="3.2" fill="${c.body}"/><ellipse cx="15.3" cy="-5.5" rx="3.6" ry="2.8" fill="${c.body}"/><g class="claws" stroke="#fff" stroke-width="1.3" stroke-linecap="round" fill="none"><path d="M21 -4 l4 5 M18 -2 l3 6 M24 -6 l5 3"/></g></g>`
+   +`<path d="M-14 -12 Q0 -2 14 -12 L13 -6 Q0 3 -13 -6 Z" fill="${c.outfit}"/>`
+   +`<polygon points="-14,-40 -11,-55 -3,-46" fill="${c.body}"/><polygon points="14,-40 11,-55 3,-46" fill="${c.body}"/>`;
+  if(back)return s+`<ellipse cx="0" cy="-34" rx="16" ry="13" fill="${c.body}"/>`
+     +`<path d="M-14 -17 Q0 -9 14 -17 L14 -12 Q0 -4 -14 -12 Z" fill="${c.outfit}"/>`
+     +c.acc.filter(a=>BACK_OK.includes(a)).map(accessory).join('');
+  return s+`<polygon points="-12,-44 -10,-51 -6,-46" fill="#f5b5c1"/><polygon points="12,-44 10,-51 6,-46" fill="#f5b5c1"/>`
+   +`<ellipse cx="0" cy="-34" rx="16" ry="13" fill="${c.body}"/>`
+   +`<g class="shut" fill="none" stroke="#2b2230" stroke-width="1.5" stroke-linecap="round"><path d="M-9 -35 Q-6 -32.5 -3 -35 M3 -35 Q6 -32.5 9 -35"/></g>`
+   +`<g class="eyes"><circle cx="-6" cy="-35" r="2.4" fill="#2b2230"/><circle cx="6" cy="-35" r="2.4" fill="#2b2230"/>`
+   +`<circle cx="-5.3" cy="-35.8" r=".8" fill="#fff"/><circle cx="6.7" cy="-35.8" r=".8" fill="#fff"/></g>`
+   +`<ellipse cx="-10" cy="-30" rx="3" ry="1.8" fill="#ff9aa8" opacity=".6"/><ellipse cx="10" cy="-30" rx="3" ry="1.8" fill="#ff9aa8" opacity=".6"/>`
+   +`<polygon points="-1.6,-31 1.6,-31 0,-29" fill="#e0707f"/>`
+   +`<path d="M-3 -27 Q0 -24.5 3 -27" fill="none" stroke="#5a4a5e" stroke-width="1"/>`
+   +`<ellipse class="yawn" cx="0" cy="-25.5" rx="3.4" ry="4" fill="#7a2f3d"/><ellipse class="tongue" cx="0" cy="-25" rx="2.2" ry="1.6" fill="#ff8aa0"/>`
+   +`<g stroke="${wh}" stroke-width="1.2" stroke-linecap="round" fill="none"><path d="M-9 -31 L-25 -35 M-9 -29.5 L-26 -29.5 M-9 -28 L-24 -24"/><path d="M9 -31 L25 -35 M9 -29.5 L26 -29.5 M9 -28 L24 -24"/></g>`
+   +c.acc.map(accessory).join('');
+}
+
+/* ---------- Layout ---------- */
+const NS='http://www.w3.org/2000/svg',scene=$('scene');
+const mk=str=>{const g=document.createElementNS(NS,'g');g.innerHTML=str;return g.firstElementChild};
+const TABLE={x:1.8,y:.8,w:6.0,d:1.8,h:36};
+const SEATX=[2.6,4.0,5.4,6.8];
+// 4 staff per floor sit in front of the table, seen from behind. Floor 1: steps 1-4, floor 2: steps 5-8
+const flOf=i=>i<4?0:1;
+const seatOf=i=>({x:SEATX[i%4],y:3.1,back:true,fl:flOf(i)});
+const spotOf=i=>{const s=seatOf(i);return[s.x+.75,3.85]};
+const HOME=[8.2,3.8];
+const ELEV={x0:10.15,x1:11.65,y0:.15,y1:1.75,door:[10.9,2.5],in:[10.9,1.05]};   // glass lift stands outside the right wall, on a deck
+const wallText=(x,y,z,body)=>{const [px,py]=P(x,y,z);return `<g transform="translate(${px} ${py}) matrix(.9 ${(.9*K).toFixed(3)} 0 1 0 0)">${body}</g>`}; // right wall plane
+const leftWall=(x,y,z,body)=>{const [px,py]=P(x,y,z);return `<g transform="translate(${px} ${py}) matrix(.9 ${(-.9*K).toFixed(3)} 0 1 0 0)">${body}</g>`}; // left wall plane, u runs toward smaller y
+
+/* ---------- Beach: palms and the world outside the glass ---------- */
+function palm(snow=false){
+  const leaf=(a,i)=>`<g class="frond" style="animation-delay:${-i*.45}s"><g transform="rotate(${a} 4 -80)"><path d="M4 -80 Q-22 -108 -58 -86 Q-26 -92 4 -80Z" fill="#6fcf75"/>${snow?'<path class="snowcap" d="M4 -81 Q-22 -107 -56 -88 Q-24 -98 4 -81Z" fill="#fff"/>':''}<path d="M4 -80 Q-22 -100 -52 -86" fill="none" stroke="#2c8450" stroke-width="1.2"/></g></g>`;
+  return `<g class="sway"><path d="M0 0 Q-10 -40 4 -80" fill="none" stroke="#8a5a2b" stroke-width="8" stroke-linecap="round"/>`
+    +`<path d="M-3 -20 l7 -2 M-4 -36 l8 -2 M-1 -52 l7 -2 M2 -66 l6 -2" stroke="#6e4620" stroke-width="2"/>`
+    +[-25,20,65,110,155,200].map(leaf).join('')
+    +`<circle cx="2" cy="-77" r="4" fill="#6b3f1d"/><circle cx="8" cy="-75" r="4" fill="#7b4a22"/></g>`;
+}
+const HZ=130,SHY=210; // horizon height; shoreline height at the right edge (it runs along the glass wall's axis)
+function outside(){
+  const rnd=(()=>{let a=7;return()=>(a=(a*9301+49297)%233280)/233280})();
+  let s=`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop id="sk0" offset="0" stop-color="#8fd6f4"/><stop id="sk1" offset="1" stop-color="#fff1d8"/></linearGradient>`
+   +`<linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop id="se0" offset="0" stop-color="#b4f1e4"/><stop id="se1" offset="1" stop-color="#31bccf"/></linearGradient>`
+   +`<radialGradient id="sunglow"><stop id="sg0" offset="0" stop-color="#fff6b8" stop-opacity=".95"/><stop id="sg1" offset="1" stop-color="#fff6b8" stop-opacity="0"/></radialGradient><radialGradient id="naglow"><stop offset="0" stop-color="#ffd1e6" stop-opacity=".75"/><stop offset="1" stop-color="#ffd1e6" stop-opacity="0"/></radialGradient><linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff4f1"/><stop offset="1" stop-color="#ffd8de"/></linearGradient>`
+   +`<linearGradient id="gGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".55" stop-color="#d6f0ff" stop-opacity=".14"/><stop offset="1" stop-color="#a9ddf5" stop-opacity=".1"/></linearGradient>`
+   +`<linearGradient id="gMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".35" stop-color="#bfe8ff" stop-opacity=".28"/><stop offset=".6" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#a6d8f5" stop-opacity=".32"/></linearGradient>`
+   +texDefs()+`<linearGradient id="gTable" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#f0e1c8"/></linearGradient>`
+   +`<linearGradient id="gSlabL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#f3e3cf"/></linearGradient>`
+   +`<linearGradient id="gSlabR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f1dfcb"/><stop offset="1" stop-color="#e2cdb6"/></linearGradient>`
+   +`<filter id="blur3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter><filter id="blur6" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter></defs>`;
+  s+=`<rect x="-700" y="-300" width="2400" height="${HZ+300}" fill="url(#sky)"/>`;
+  let st='';for(let i=0;i<90;i++)st+=`<circle class="star" style="animation-delay:-${(rnd()*4).toFixed(1)}s" cx="${(40+rnd()*940).toFixed(0)}" cy="${(-120+rnd()*(HZ+110)).toFixed(0)}" r="${(.8+rnd()*1.3).toFixed(1)}" fill="#fff"/>`;
+  s+=`<g id="stars" style="display:none">${st}</g>`;
+  s+=`<g id="sunG" transform="translate(300 38)"><g class="sunray"><circle r="95" fill="url(#sunglow)"/></g><circle id="sunD" r="26" fill="#fff4a0"/>`
+    +`<g id="moonD" style="display:none"><circle r="24" fill="#f4f1d6"/><circle cx="-8" cy="-6" r="5" fill="#dcd8b8"/><circle cx="9" cy="7" r="4" fill="#dcd8b8"/><circle cx="6" cy="-10" r="2.5" fill="#dcd8b8"/></g></g>`;
+  [[120,62,1],[480,28,.8],[820,82,1.2],[250,-62,1.6],[640,-40,1.3],[60,-85,1.1],[880,-72,1.4],[470,-96,1.2]].forEach(([x,y,k],i)=>{
+    s+=`<g class="cloud" style="animation-delay:${-i*38}s"><g transform="translate(${x} ${y}) scale(${k})" fill="#fff" opacity=".92"><ellipse cx="0" cy="0" rx="34" ry="12"/><ellipse cx="22" cy="-8" rx="24" ry="12"/><ellipse cx="-20" cy="-6" rx="20" ry="10"/></g></g>`});
+  [[70,6],[96,-14],[52,22]].forEach(([y,d],i)=>{
+    s+=`<g class="gull" style="animation-duration:${34+i*9}s;animation-delay:${-d-i*11}s"><path transform="translate(60 ${y})" d="M0 0 q7 -8 14 0 q7 -8 14 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></g>`});
+  const SXX=960+(SHY-HZ)/K,SHL=HZ+(SXX+700)*K;
+  const SEA=`M-700 ${HZ} L${SXX} ${HZ} L-700 ${SHL} Z`;
+  s+=`<defs><clipPath id="seaclip"><path d="${SEA}"/></clipPath></defs>`;
+  s+=`<rect x="-700" y="${HZ}" width="2400" height="1100" fill="url(#sea)"/>`;
+  s+=`<g clip-path="url(#seaclip)">`;
+  [[16,5,34,9,.75],[44,6,40,12,.5]].forEach(([d,A,L,w,o],k)=>{let pts=[];for(let x=-700;x<=SXX+60;x+=6){pts.push((pts.length?'L':'M')+x+' '+(SHL-d-(x+700)*K+A*Math.sin(x/L*Math.PI)).toFixed(1))}s+=`<g class="wvin" style="animation-duration:${5+k*1.5}s;animation-delay:-${k*2}s"><path d="${pts.join(' ')}" stroke="#fff" stroke-opacity="${o}" stroke-width="${w}" fill="none" stroke-linejoin="round" stroke-linecap="round"/></g>`});
+  [28,62,104,152,208,274,352,444,552,680].forEach((d,k)=>{
+    const A=4+k*.8,L=48+k*5;let pts=[];for(let x=-700;x<=SXX+60;x+=8){const y=SHL-d-(x+700)*K+A*Math.sin(x/L*Math.PI+k);pts.push((pts.length?'L':'M')+x+' '+y.toFixed(1))}
+    const pd=pts.join(' ');
+    s+=`<g class="wvin" style="animation-duration:${7+k%3}s;animation-delay:-${(k*1.7).toFixed(1)}s"><path d="${pd}" transform="translate(0 7)" stroke="#2fa6c4" stroke-opacity="${(.16+k*.012).toFixed(2)}" stroke-width="${(7+k*.8).toFixed(1)}" fill="none" stroke-linecap="round"/>`
+      +`<path d="${pd}" stroke="#fff" stroke-opacity="${(.9-k*.04).toFixed(2)}" stroke-width="${(3.4-k*.12).toFixed(1)}" fill="none" stroke-linecap="round" stroke-dasharray="${90+k*10} ${26+k*4} ${140+k*8} ${34+k*3}"/></g>`});
+  s+=`</g>`;
+  {   s+=`<g clip-path="url(#seaclip)">`;[[-250,230,90],[-60,400,130],[-300,560,150],[-120,700,160],[110,300,70],[-420,330,110]].forEach(([x,y,r],i)=>{s+=`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*.32}" fill="#e8fff6" opacity=".22"/>`});s+=`</g>`;
+   const ring=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><g class="ringf"><ellipse cx="0" cy="8" rx="46" ry="14" fill="#1c8aa6" opacity=".18"/><ellipse cx="0" cy="0" rx="42" ry="14" fill="#fff"/><path d="M-42 0 a42 14 0 0 0 84 0 a42 14 0 0 0 -84 0Z M-20 0 a20 6 0 0 1 40 0 a20 6 0 0 1 -40 0Z" fill="#ff7f9b" fill-rule="evenodd" opacity=".9"/><ellipse cx="0" cy="0" rx="21" ry="7" fill="#3ec3d0"/><ellipse cx="0" cy="0" rx="42" ry="14" fill="none" stroke="#fff" stroke-width="3"/><ellipse cx="0" cy="16" rx="56" ry="9" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2.4"/></g></g>`;
+   const flam=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><g class="ringf"><ellipse cx="0" cy="8" rx="40" ry="12" fill="#1c8aa6" opacity=".18"/><ellipse cx="0" cy="0" rx="36" ry="12" fill="#ffb3c8"/><ellipse cx="0" cy="0" rx="17" ry="6" fill="#3ec3d0"/><path d="M18 -4 q8 -26 20 -26 q10 0 6 10 q-4 2 -8 -2 q-2 14 -10 20Z" fill="#ff8fb0"/><path d="M42 -26 l12 4 l-10 3Z" fill="#ffd27a"/><circle cx="40" cy="-27" r="1.8" fill="#4a2b3a"/><ellipse cx="0" cy="16" rx="50" ry="8" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2.4"/></g></g>`;
+   s+=ring(-170,470,.9)+flam(-60,620,.95)+ring(-330,380,.6);}
+  s+=`<g class="boat" opacity=".92"><g transform="translate(150 ${HZ+46}) scale(.62)">
+    <ellipse cx="0" cy="12" rx="78" ry="4" fill="#fff" opacity=".5"/>
+    <path d="M-86 10 Q-40 12 0 11 Q50 10 92 12" stroke="#fff" stroke-opacity=".6" stroke-width="3" fill="none"/>
+    <path d="M-74 -4 L84 -4 L98 -14 L72 8 L-66 8Z" fill="#f7f9fc"/>
+    <path d="M-66 8 L72 8 L68 3 L-62 3Z" fill="#1c2b45"/>
+    <path d="M-60 -4 L-48 -22 L58 -22 L66 -4Z" fill="#ffffff"/>
+    <path d="M-50 -22 L-40 -36 L36 -36 L46 -22Z" fill="#eef2f8"/>
+    <rect x="-52" y="-18" width="104" height="7" rx="2" fill="#1f3350"/>
+    <rect x="-36" y="-32" width="66" height="6" rx="2" fill="#1f3350"/>
+    <path d="M-52 -18 L52 -18" stroke="#6fa8d8" stroke-width="1" opacity=".7"/>
+    <path d="M-30 -36 L-26 -46 L22 -46 L26 -36Z" fill="#f7f9fc"/>
+    <line x1="0" y1="-46" x2="0" y2="-62" stroke="#c9d2de" stroke-width="2"/><circle cx="0" cy="-63" r="2.5" fill="#e5486f"/>
+    <path d="M-22 -50 L22 -50" stroke="#c9d2de" stroke-width="2"/>
+    </g></g>`;
+  const SX=SXX,SH=`M-700 ${SHL} L${SX} ${HZ}`,SD=`M-700 ${SHL} L${SX} ${HZ} L1600 ${HZ} L1600 1300 L-700 1300 Z`;
+  s+=`<defs><clipPath id="sandclip"><path d="${SD}"/></clipPath></defs>`;
+  s+=`<path d="${SH}" fill="none" stroke="#bfa06c" stroke-width="26" stroke-opacity=".34" stroke-linecap="round" transform="translate(6 10)"/>`;
+  s+=`<path d="${SD}" fill="#f8e2bd"/>`;
+  s+=`<path d="M${SXX-30} ${HZ+2} Q${SXX+160} ${HZ-26} ${SXX+330} ${HZ-12} T1600 ${HZ-34} L1600 ${HZ+2} Z" fill="#f0d2a8"/><path d="M${SXX+60} ${HZ+2} Q${SXX+260} ${HZ-14} 1600 ${HZ-10} L1600 ${HZ+2} Z" fill="#f8e2bd"/>`;
+  s+=`<path class="foam" d="${SH}" stroke="#fff" stroke-width="16" stroke-opacity=".5" fill="none" stroke-linecap="round" transform="translate(-4 -6)"/><path class="foam" d="${SH}" stroke="#fff" stroke-width="9" stroke-opacity=".95" fill="none" stroke-linecap="round"/>`;
+  s+=`<g clip-path="url(#sandclip)">`;
+  for(let i=0;i<90;i++)s+=`<circle cx="${(-100+rnd()*1100).toFixed(0)}" cy="${(330+rnd()*700).toFixed(0)}" r="${(1+rnd()*1.4).toFixed(1)}" fill="#d9bd85" opacity=".55"/>`;
+  s+=`<path class="puddle" d="${SD}" fill="#6b5a45" fill-opacity=".22"/>`;
+  [[110,760,34,9],[470,905,44,11],[740,870,30,8],[890,780,38,10],[130,640,26,7]].forEach(([x,y,rx,ry],i)=>{
+    s+=`<g class="puddle"><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#8fd0ea" fill-opacity=".85" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>`
+      +`<ellipse cx="${x-rx*.3}" cy="${y-ry*.25}" rx="${rx*.35}" ry="${ry*.2}" fill="#fff" fill-opacity=".5"/>`
+      +[0,.8].map(d=>`<ellipse class="ripple" style="animation-delay:-${d+i*.3}s" cx="${x+rx*.2}" cy="${y}" rx="${rx*.5}" ry="${ry*.5}" fill="none" stroke="#fff" stroke-width="1.4"/>`).join('')+`</g>`});
+  s+=`<path class="snowcap" d="${SD}" fill="#f4f8ff" fill-opacity=".92"/>`;
+  s+=`</g>`;
+  // palms, umbrella, lounger and a ball on the sand around the deck
+  s+=`<ellipse cx="135" cy="868" rx="62" ry="12" fill="#b8806f" opacity="0.28" filter="url(#blur3)"/><ellipse cx="880" cy="888" rx="58" ry="11" fill="#b8806f" opacity="0.28" filter="url(#blur3)"/><ellipse cx="300" cy="958" rx="70" ry="13" fill="#b8806f" opacity="0.28" filter="url(#blur3)"/><ellipse cx="800" cy="904" rx="44" ry="8" fill="#b8806f" opacity="0.28" filter="url(#blur3)"/><ellipse cx="570" cy="926" rx="14" ry="4" fill="#b8806f" opacity="0.3" filter="url(#blur3)"/>`;
+  s+=`<g transform="translate(110 860) scale(1.3)">${palm(true)}</g><g transform="translate(905 880) scale(1.2) scale(-1 1)">${palm(true)}</g>`;
+  s+=`<g transform="translate(290 950)"><g class="umb"><line x1="0" y1="0" x2="0" y2="-74" stroke="#7a5a3a" stroke-width="4"/><path d="M-54 -66 Q0 -112 54 -66Z" fill="#f7a1c0"/><path d="M-18 -66 Q-6 -100 0 -104 Q6 -100 18 -66Z" fill="#fff" opacity=".85"/><path class="snowcap" d="M-46 -72 Q0 -113 46 -72 Q30 -82 12 -80 Q0 -86 -12 -80 Q-30 -82 -46 -72Z" fill="#fff"/><path d="M-18 -66 Q-4 -104 0 -100 Q4 -104 18 -66Z" fill="#fff"/><path d="M-54 -66 q9 8 18 0 q9 8 18 0 q9 8 18 0 q9 8 18 0 q9 8 18 0 q9 8 18 0" fill="#e5486f"/></g></g>`;
+  s+=`<g transform="translate(800 900)"><path d="M-30 0 L30 0 L40 -10 L-20 -10Z" fill="#59b59a"/><path d="M20 -10 L36 -26 L48 -22 L34 -10Z" fill="#7ad1b8"/><path class="snowcap" d="M-24 -10 L-20 -13 L38 -13 L40 -10Z M22 -12 L36 -27 L46 -23 L40 -17Z" fill="#fff"/></g>`;
+  // beach props in the foreground: towels lie flat on the sand plane, a sandcastle, surfboards and a signpost
+  const flat=(cx,cy,w,d,fill,extra='')=>{const pt=(a,b)=>[cx+(a*w*50-b*d*44),cy+(a*w*50+b*d*44)*K].map(n=>n.toFixed(1)).join(',');return `<polygon points="${pt(-.5,-.5)} ${pt(.5,-.5)} ${pt(.5,.5)} ${pt(-.5,.5)}" ${extra} fill="${fill}"/>`};
+  const towel=(cx,cy,c1,c2)=>`<g>`+flat(cx+5,cy+6,1,1,'#7a5a2e','opacity=".25" filter="url(#blur3)"')+flat(cx,cy,1,1,c1)+[-.28,0,.28].map(t=>{const pt=(a,b)=>[cx+(a*50-b*44),cy+(a*50+b*44)*K].map(n=>n.toFixed(1)).join(',');return `<polygon points="${pt(-.5,t-.06)} ${pt(.5,t-.06)} ${pt(.5,t+.06)} ${pt(-.5,t+.06)}" fill="${c2}"/>`}).join('')+flat(cx,cy,1,1,'#fff','class="snowcap"')+`</g>`;
+  s+=towel(190,1005,'#4fb6c9','#fff')+towel(470,1030,'#e8758c','#ffe08a');
+  // pastel pool with a white rim, set into a pink deck, on the sand to the right
+  {const slab=(cx,cy,w,d,h,top,side,ex='')=>flat(cx,cy+h,w,d,side,ex)+flat(cx,cy,w,d,top,ex);
+   s+=flat(1128,806,3.7,2.7,'#b8806f','opacity=".25" filter="url(#blur6)"');
+   s+=slab(1120,780,3.6,2.6,10,'#ffd3dc','#f2b5c4');
+   s+=slab(1120,776,3.0,2.0,8,'#fff','#e9dccb');
+   s+=flat(1120,776,2.7,1.7,'url(#sea)');
+   s+=flat(1120,776,2.7,1.7,'#fff','opacity=".18"');
+   s+=`<g transform="translate(1150 772) scale(.45)"><g class="ringf"><ellipse cx="0" cy="0" rx="42" ry="14" fill="#fff"/><path d="M-42 0 a42 14 0 0 0 84 0 a42 14 0 0 0 -84 0Z M-20 0 a20 6 0 0 1 40 0 a20 6 0 0 1 -40 0Z" fill="#ff7f9b" fill-rule="evenodd"/><ellipse cx="0" cy="0" rx="21" ry="7" fill="#3ec3d0"/></g></g>`;
+   s+=`<g stroke="#e8eef2" stroke-width="3" fill="none" stroke-linecap="round"><path d="M1038 772 v-22 q6 -8 12 0 v22"/><path d="M1052 778 v-22 q6 -8 12 0 v22"/></g>`;
+   // pink lounger with a striped cushion
+   s+=`<g transform="translate(1250 880)"><ellipse cx="0" cy="8" rx="54" ry="10" fill="#b8806f" opacity=".25" filter="url(#blur3)"/><path d="M-44 4 L38 4 L50 -8 L-30 -8Z" fill="#fff"/><path d="M-30 -8 L-14 -34 L2 -30 L-12 -8Z" fill="#fff"/><path d="M-40 0 L34 0 L44 -8 L-30 -8Z" fill="#ff9fb8"/><path d="M-30 -8 L-26 -14 L-12 -12 L-14 -8Z" fill="#ffd3dc"/></g>`;
+   // floating wooden deck with a white rim and steps into the water, on the left
+   s+=flat(-96,936,4.6,2.6,'#1c8aa6','opacity=".18" filter="url(#blur6)"');
+   s+=slab(-100,906,4.4,2.5,12,'#f3cf98','#fffaf0','stroke="#fff" stroke-width="3"');
+   for(let i=-4;i<=4;i++){const q=(a,b)=>[-100+(a*4.4*50-b*2.5*44),906+(a*4.4*50+b*2.5*44)*K];const A=q(i/9*.98,-.5),B=q(i/9*.98,.5);s+=`<line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="#c9a066" stroke-opacity=".5" stroke-width="1.4"/>`}
+   s+=slab(-60,934,1.6,.9,6,'#f7dcae','#fffaf0')+slab(-40,950,1.1,.7,5,'#f7dcae','#fffaf0');
+   s+=`<g transform="translate(-170 880)"><line x1="0" y1="0" x2="0" y2="-44" stroke="#fff" stroke-width="3"/><path d="M0 -44 L22 -36 L0 -28Z" fill="#ff8fb0"/></g>`;
+   s+=`<g transform="translate(-100 900) scale(.9)"><ellipse cx="0" cy="8" rx="44" ry="9" fill="#b8806f" opacity=".2"/><path d="M-30 -2 L30 -2 L24 -22 L-24 -22Z" fill="#7fd6cf"/><rect x="-26" y="-24" width="52" height="6" rx="3" fill="#fff"/></g>`;}
+  s+=`<g transform="translate(115 1040)"><ellipse cx="4" cy="6" rx="46" ry="9" fill="#b8806f" opacity=".25" filter="url(#blur3)"/><path d="M-40 4 L40 4 L36 -14 L-36 -14Z" fill="#dcc08a"/><rect x="-22" y="-40" width="44" height="28" fill="#e6cd98"/><rect x="-34" y="-34" width="14" height="22" fill="#dcc08a"/><rect x="20" y="-34" width="14" height="22" fill="#dcc08a"/><path d="M-34 -34 l3 -6 h3 l3 6z M20 -34 l3 -6 h3 l3 6z M-22 -40 l4 -7 h4 l3 5 h4 l3 -5 h4 l4 7z" fill="#e6cd98"/><path d="M-4 -12 v-14 q4 -5 8 0 v14z" fill="#b99a62"/><path class="snowcap" d="M-24 -41 l4 -7 h4 l3 5 h4 l3 -5 h4 l4 7z M-34 -35 l3 -6 h3 l3 6z M20 -35 l3 -6 h3 l3 6z" fill="#fff"/><g transform="translate(58 -2)"><path d="M-8 0 l2 -12 h12 l2 12z" fill="#e5486f"/><path d="M-9 -12 q9 -3 18 0" stroke="#b3304f" stroke-width="2" fill="none"/></g></g>`;
+  s+=`<g transform="translate(715 1045)"><ellipse cx="4" cy="4" rx="26" ry="6" fill="#b8806f" opacity=".25" filter="url(#blur3)"/><rect x="-4" y="-96" width="8" height="98" rx="3" fill="#8a6038"/><g font-family="Trebuchet MS,sans-serif" font-size="11" font-weight="700" fill="#fff7e6" text-anchor="middle"><path d="M-34 -92 h60 l8 8 l-8 8 h-60z" fill="#a8713c"/><path d="M-26 -68 h56 v16 h-56 l-8 -8z" fill="#3fa3b8"/><path d="M-34 -44 h58 l8 8 l-8 8 h-58z" fill="#c9884a"/><text x="-2" y="-81">BEACH</text><text x="2" y="-56">OFFICE</text><text x="-1" y="-33">HQ</text></g><path class="snowcap" d="M-34 -93 h60 l9 9 l-4 -1 h-60z M-26 -69 h56 l2 3 h-58z M-34 -45 h58 l9 9 l-4 -1 h-58z" fill="#fff"/></g>`;
+  [[790,985,-16,'#ff7a59','#ffe08a'],[826,992,10,'#4ac2a8','#fff']].forEach(([x,y,r,c1,c2])=>{
+    s+=`<g transform="translate(${x} ${y}) rotate(${r})"><ellipse cx="3" cy="3" rx="11" ry="4" fill="#b8806f" opacity=".25" filter="url(#blur3)"/><path d="M0 0 C-14 -30 -14 -76 0 -110 C14 -76 14 -30 0 0Z" fill="${c1}"/><path d="M0 -2 C-3 -40 -3 -76 0 -108" stroke="${c2}" stroke-width="4" fill="none"/><path class="snowcap" d="M0 -110 C-8 -92 -10 -84 -9 -78 C-4 -88 4 -88 9 -78 C10 -84 8 -92 0 -110Z" fill="#fff"/></g>`});
+  [[290,1040],[560,1000],[880,1020],[200,930],[760,985]].forEach(([x,y],i)=>{
+    s+=`<g transform="translate(${x} ${y}) scale(${.8+i%3*.2})">${i%2?'<path d="M0 0 q-10 -14 0 -16 q10 2 0 16z" fill="#f4b6c2"/><path d="M-4 -8 q4 -4 8 0" stroke="#d98a9a" fill="none"/>':'<path d="M0 -12 l3 8 l9 0 l-7 5 l3 9 l-8 -5 l-8 5 l3 -9 l-7 -5 l9 0z" fill="#ff8f5a"/>'}</g>`});
+  s+=`<g transform="translate(60 560)"><g class="ball"><circle cx="640" cy="468" r="11" fill="#fff"/><path d="M640 457 A11 11 0 0 1 651 468 L640 468Z" fill="#ff6b6b"/><path d="M640 479 A11 11 0 0 1 629 468 L640 468Z" fill="#4d9cf0"/><path class="snowcap" d="M631 461 Q640 452 649 461 Q640 458 631 461Z" fill="#fff"/></g></g>`;
+  // weather lives outside the glass, so only the view through the windows changes
+  let rn='',sn='';
+  for(let i=0;i<150;i++)rn+=`<line class="rain" style="animation-duration:${(.9+rnd()*.5).toFixed(2)}s;animation-delay:-${(rnd()*1.4).toFixed(2)}s" x1="${(-100+rnd()*1150).toFixed(0)}" y1="0" x2="${(-100+rnd()*1050).toFixed(0)}" y2="0" stroke="#dbeaff" stroke-opacity=".6" stroke-width="1.6" stroke-linecap="round"/>`;
+  rn=rn.replace(/x1="(-?\d+)" y1="0" x2="-?\d+" y2="0"/g,(m,x)=>`x1="${x}" y1="0" x2="${+x-7}" y2="22"`);
+  for(let i=0;i<110;i++)sn+=`<circle class="snow" style="animation-duration:${(9+rnd()*6).toFixed(1)}s;animation-delay:-${(rnd()*14).toFixed(1)}s" cx="${(-100+rnd()*1150).toFixed(0)}" cy="0" r="${(1.6+rnd()*2.2).toFixed(1)}" fill="#fff" opacity=".9"/>`;
+  s+=`<rect id="wxdim" x="-700" y="-300" width="2400" height="1500" fill="#445" opacity="0"/>`;
+  s+=`<g id="rainG" style="display:none">${rn}</g><g id="snowG" style="display:none">${sn}</g>`;
+  s+=`<rect id="flash" x="-700" y="-300" width="2400" height="1500" fill="#fff" opacity="0"/>`;
+  return s;
+}
+
+function awning(){
+  const z=FT+WALL-6,out=1.5,n=10,dy=DD/n;let s='';
+  s+=poly([P(0,0,z+6),P(0,DD,z+6),P(-out,DD,z-22),P(-out,0,z-22)],'#fff','opacity=".0"');
+  for(let i=0;i<n;i++){const a=i*dy,b=a+dy,c=i%2?'#fff':'#ff9fb8';
+    s+=poly([P(0,a,z+8),P(0,b,z+8),P(-out,b,z-24),P(-out,a,z-24)],c,'stroke="#f4c2cf" stroke-width="1"');
+    const [x1,y1]=P(-out,a,z-24),[x2,y2]=P(-out,b,z-24),mx=(x1+x2)/2,my=(y1+y2)/2,r=Math.hypot(x2-x1,y2-y1)/2;
+    s+=`<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${r.toFixed(1)} ${(r*.9).toFixed(1)} 0 0 0 ${x2.toFixed(1)} ${y2.toFixed(1)}Z" fill="${c}" stroke="#f4c2cf" stroke-width="1"/>`}
+  s+=poly([P(0,0,z+8),P(0,DD,z+8),P(0,DD,z+14),P(0,0,z+14)],'#fff');
+  return s;
+}
+/* ---------- One storey (floor 2 is the same frame, lifted by FT) ---------- */
+const RW=64; // one glass row; WALL = 2 rows, FT = 6 rows
+/* sandy plinth: the ground floor stands on a stone foundation sunk into a sand pad */
+function plinth(){
+  const GZ=-60;
+  const rect=(x0,y0,x1,y1,z)=>[P(x0,y0,z),P(x1,y0,z),P(x1,y1,z),P(x0,y1,z)];
+  let s=poly(rect(-.2,-.1,10.4,DD+.5,GZ),'#8a7650','opacity=".28" filter="url(#blur6)"');
+  s+=poly([P(0,DD),P(10,DD),P(10,DD,GZ),P(0,DD,GZ)],'#f6ead8')+poly([P(10,0),P(10,DD),P(10,DD,GZ),P(10,0,GZ)],'#e6d4bf');
+  for(let i=1;i<10;i++){const x=i;s+=`<line x1="${P(x,DD)[0]}" y1="${P(x,DD)[1]}" x2="${P(x,DD,GZ)[0]}" y2="${P(x,DD,GZ)[1]}" stroke="#a8946d" stroke-opacity=".35" stroke-width="1"/>`}
+  s+=poly([P(0,DD,-14),P(10,DD,-14),P(10,DD,-22),P(0,DD,-22)],'#2d1f10','opacity=".18"');
+  s+=poly([P(0,DD,GZ+8),P(10,DD,GZ+8),P(10,DD,GZ),P(0,DD,GZ)],'#8a7650','opacity=".3"');
+  return s;
+}
+function floorBase(f){
+  const top=f?WALL:FT;
+  const wood=f?['#f6dcb6','#f0d0a2','#cfa877']:['#f3d29c','#ecc88c','#c9a066'];
+  const rect=(x0,y0,x1,y1,z=0)=>[P(x0,y0,z),P(x1,y0,z),P(x1,y1,z),P(x0,y1,z)];
+  let s='';
+  if(!f)s+=poly(rect(.8,.6,11,DD+1.0,-14),'#4a3a28','opacity=".3" filter="url(#blur6)"');
+  // slab edge: two faces and a pale lip on top
+  s+=poly([P(0,DD),P(10,DD),P(10,DD,-14),P(0,DD,-14)],'url(#gSlabL)')+poly([P(10,0),P(10,DD),P(10,DD,-14),P(10,0,-14)],'url(#gSlabR)');
+  s+=poly([P(0,DD),P(10,DD),P(10,DD,-3),P(0,DD,-3)],'#fff','opacity=".9"');
+  // planks: alternating tones, staggered seams and a thin highlight on each edge
+  const rows=8,ph=DD/rows;
+  for(let r=0;r<rows;r++){
+    const a=r*ph,b=a+ph;
+    s+=poly(rect(0,a,10,b),wood[r%2],`stroke="${wood[2]}" stroke-opacity=".4" stroke-width="1"`);
+    s+=texOver(rect(0,a,10,b),'wood','T',.5);
+    s+=`<line x1="${P(0,a)[0]}" y1="${P(0,a)[1]+1}" x2="${P(10,a)[0]}" y2="${P(10,a)[1]+1}" stroke="#fff" stroke-opacity=".16" stroke-width="1"/>`;
+    for(let k=0;k<3;k++){const x=((r*2.3)+k*3.4+1)%10;
+      s+=`<line x1="${P(x,a)[0]}" y1="${P(x,a)[1]}" x2="${P(x,b)[0]}" y2="${P(x,b)[1]}" stroke="${wood[2]}" stroke-opacity=".45" stroke-width="1"/>`}
+  }
+  // contact shadow where the floor meets the walls
+  [[.22,.14],[.5,.08],[.9,.05]].forEach(([w,o])=>{
+    s+=poly(rect(0,0,10,w),'#2d1f10',`opacity="${o}"`)+poly(rect(0,0,w*.7,DD),'#2d1f10',`opacity="${(o*.5).toFixed(3)}"`)});
+  // woven rug with a border, and a mat in front of the lift
+  s+=poly(rect(1.2,.4,8.4,3.6),'#6fb3ab','stroke="#5a9690" stroke-width="2"');
+  s+=poly(rect(1.38,.58,8.22,3.42),'#9fd9d2')+texOver(rect(1.38,.58,8.22,3.42),'weave','T');
+  for(let y=.9;y<3.4;y+=.5)s+=`<line x1="${P(1.4,y)[0]}" y1="${P(1.4,y)[1]}" x2="${P(8.2,y)[0]}" y2="${P(8.2,y)[1]}" stroke="#b9e8e2" stroke-opacity=".7" stroke-width="1.2"/>`;
+  // outdoor deck carrying the lift, level with this floor
+  const DX=12.1,DY=3.6;
+  s+=poly([P(10,DY),P(DX,DY),P(DX,DY,-14),P(10,DY,-14)],'url(#gSlabL)')+poly([P(DX,0),P(DX,DY),P(DX,DY,-14),P(DX,0,-14)],'url(#gSlabR)');
+  s+=poly([P(10,DY),P(DX,DY),P(DX,DY,-3),P(10,DY,-3)],'#fff','opacity=".9"');
+  s+=poly(rect(10,0,DX,DY),wood[0],`stroke="${wood[2]}" stroke-opacity=".4" stroke-width="1"`)+texOver(rect(10,0,DX,DY),'wood','T',.5);
+  for(let y=.45;y<DY;y+=.45)s+=`<line x1="${P(10,y)[0]}" y1="${P(10,y)[1]}" x2="${P(DX,y)[0]}" y2="${P(DX,y)[1]}" stroke="${wood[2]}" stroke-opacity=".4" stroke-width="1"/>`;
+  s+=poly(rect(10.25,1.9,11.9,3.35),'#b9c3d6','stroke="#98a5bd" stroke-width="2"')+poly(rect(10.4,2.05,11.75,3.2),'#cdd5e3');
+  if(!f)s+=box(DX-.2,DY-.2,.16,.16,46,['#fff','#e6d4bf','#d7c3a8'],-60)+box(10.05,DY-.2,.16,.16,46,['#fff','#e6d4bf','#d7c3a8'],-60);
+  // low glass rail along the open edges
+  s+=poly([P(10,DY,0),P(DX,DY,0),P(DX,DY,24),P(10,DY,24)],'#cfeaff','opacity=".3" stroke="#fff" stroke-width="1.5"')+poly([P(DX,1.75,0),P(DX,DY,0),P(DX,DY,24),P(DX,1.75,24)],'#cfeaff','opacity=".3" stroke="#fff" stroke-width="1.5"');
+  // sunlight pouring through the glass (strength set by the time of day)
+  s+=`<clipPath id="bclip${f}"><polygon points="${pts(rect(0,0,10,DD))}"/></clipPath><g clip-path="url(#bclip${f})">`;
+  [[.1,1.2],[1.4,2.5],[2.7,3.8],[4.0,5.1]].forEach(([a,b])=>{
+    s+=poly([P(0,a),P(0,b),P(4.6,b+1.5),P(4.6,a+1.5)],'#fff3c4','class="beam"')});
+  s+=`</g>`;
+  // back wall: soft vertical gradient, wainscot, rails
+  s+=poly([P(0,0),P(10,0),P(10,0,top),P(0,0,top)],'url(#gWall)','stroke="#d9cdb8" stroke-width="2"')+texOver([P(0,0),P(10,0),P(10,0,top),P(0,0,top)],'plaster','L');
+  for(let x=1.25;x<10;x+=1.25)s+=`<line x1="${P(x,0,36)[0]}" y1="${P(x,0,36)[1]}" x2="${P(x,0,top)[0]}" y2="${P(x,0,top)[1]}" stroke="#bfae92" stroke-opacity=".16" stroke-width="1"/>`;
+  s+=poly([P(0,0,10),P(10,0,10),P(10,0,36),P(0,0,36)],'#9fe0d6');
+  for(let x=1;x<10;x+=1)s+=`<line x1="${P(x,0,10)[0]}" y1="${P(x,0,10)[1]}" x2="${P(x,0,36)[0]}" y2="${P(x,0,36)[1]}" stroke="#fff" stroke-opacity=".55" stroke-width="1.5"/>`;
+  s+=poly([P(0,0,36),P(10,0,36),P(10,0,40),P(0,0,40)],'#fffaf0','stroke="#e2d5bd" stroke-width="1"');
+  s+=poly([P(0,0,40),P(10,0,40),P(10,0,46),P(0,0,46)],'#b9a888','opacity=".12"');
+  s+=poly([P(0,0),P(10,0),P(10,0,10),P(0,0,10)],'#7fcfc4');
+  s+=texOver([P(0,0,10),P(10,0,10),P(10,0,36),P(0,0,36)],'bead','L');
+  s+=poly([P(0,0,10),P(10,0,10),P(10,0,12),P(0,0,12)],'#fff','opacity=".35"');
+  s+=poly([P(0,0,top-8),P(10,0,top-8),P(10,0,top),P(0,0,top)],'#fffaf0');
+  if(!f){ // storey beam, with a soft shadow under it
+    s+=poly([P(0,0,WALL-4),P(10,0,WALL-4),P(10,0,WALL+6),P(0,0,WALL+6)],'#fff7ea');
+    s+=poly([P(0,0,WALL-4),P(10,0,WALL-4),P(10,0,WALL-18),P(0,0,WALL-18)],'#5a4630','opacity=".12"');
+    s+=poly([P(0,0,WALL+6),P(10,0,WALL+6),P(10,0,WALL+8),P(0,0,WALL+8)],'#fff','opacity=".5"');
+  }
+  // glass wall facing the sea: even grid, bevelled frames, a reflection in every pane
+  s+=poly([P(0,0),P(0,DD),P(0,DD,top),P(0,0,top)],'url(#gGlass)');
+  const cols=4,cw=DD/cols,rowsG=top/RW;
+  for(let c=0;c<cols;c++)for(let r=0;r<rowsG;r++){
+    const y0=c*cw,z0=r*RW;
+    s+=poly([P(0,y0+.18,z0+10),P(0,y0+.5,z0+10),P(0,y0+1.0,z0+RW-12),P(0,y0+.68,z0+RW-12)],'#fff','opacity=".2"');
+    s+=poly([P(0,y0+.62,z0+10),P(0,y0+.72,z0+10),P(0,y0+1.0,z0+RW-12),P(0,y0+.9,z0+RW-12)],'#fff','opacity=".12"');
+  }
+  for(let r=0;r<=rowsG;r++){const z=r*RW,a=r?z-3:0,b=r?z+3:8;
+    s+=poly([P(0,0,a),P(0,DD,a),P(0,DD,b),P(0,0,b)],'#fdfdfd','stroke="#b9c6dc" stroke-width="1"')
+     +poly([P(0,0,b-1),P(0,DD,b-1),P(0,DD,b),P(0,0,b)],'#7d8ca8','opacity=".35"');}
+  for(let c=0;c<=cols;c++){const y=c*cw;
+    s+=poly([P(0,y-.08,0),P(0,y+.08,0),P(0,y+.08,top),P(0,y-.08,top)],'#fdfdfd','stroke="#b9c6dc" stroke-width="1"')
+     +poly([P(0,y+.02,0),P(0,y+.08,0),P(0,y+.08,top),P(0,y+.02,top)],'#7d8ca8','opacity=".3"');}
+  if(!f){
+    // the quest board
+    s+=poly([P(1.95,0,6),P(6.65,0,6),P(6.65,0,96),P(1.95,0,96)],'#000','opacity=".16" transform="translate(3 4)" filter="url(#blur3)"');
+    s+=poly([P(1.95,0,6),P(6.65,0,6),P(6.65,0,96),P(1.95,0,96)],'#fffefb','stroke="#7d8cc4" stroke-width="4"');
+    s+=poly([P(2.05,0,10),P(6.55,0,10),P(6.55,0,92),P(2.05,0,92)],'none','stroke="#e3e8f7" stroke-width="1.5"');
+    s+=wallText(1.95,0,6,
+      `<text id="b-title" x="10" y="-80" font-size="13" font-weight="700" fill="#3c3052" letter-spacing=".6">${T('QUEST BOARD')}</text>`
+     +`<text id="b-quest" x="10" y="-64" font-size="11" fill="#7a5c9a">${T('Waiting for a quest…')}</text>`
+     +STEPS.map((st,i)=>`<text id="b-${st.id}" x="${i<4?10:114}" y="${-44+(i%4)*14}" font-size="11" fill="#4a3b52">⬜ ${i+1} ${T(st.name)}</text>`).join(''));
+  }else{
+    // sign, wall clock and the locked PROD door tucked into the back-left corner
+    s+=poly([P(2.1,0,40),P(6.7,0,40),P(6.7,0,108),P(2.1,0,108)],'#000','opacity=".18" transform="translate(3 4)" filter="url(#blur3)"');
+    s+=poly([P(2.1,0,40),P(6.7,0,40),P(6.7,0,108),P(2.1,0,108)],'#2d3a55','stroke="#8d9bd0" stroke-width="3"');
+    s+=wallText(2.1,0,40,`<text x="12" y="-44" font-size="14" font-weight="700" fill="#ffd98a">${T('RELEASE FLOOR')}</text><text x="12" y="-24" font-size="11" fill="#cfe4ff">${T('Review · Push · Deploy · Verify')}</text>`);
+    s+=wallText(9.6,0,84,'<circle r="18" fill="#000" opacity=".15" cx="2" cy="3"/><circle r="17" fill="#fff" stroke="#4a3b52" stroke-width="3"/><path d="M0 0 V-10 M0 0 L8 4" stroke="#4a3b52" stroke-width="2.4" stroke-linecap="round"/>');
+    s+=wallText(2.1,0,126,'<path d="M0 -2 Q80 14 165 -2" fill="none" stroke="#c9a56a" stroke-width="1.5"/>'+[0,1,2,3,4,5,6,7].map(i=>{const x=8+i*20,y=2+Math.sin(i/7*Math.PI)*8;return `<path d="M${x} ${y} L${x+14} ${y} L${x+7} ${y+14}Z" fill="${['#ff9fb8','#7fd6cf','#ffd447','#b8a2f0'][i%4]}"/>`}).join(''));
+    // DEV and UAT doors: not locked, with a signal lamp each (green = free, amber blinking = a deploy is running)
+    [[7.0,'DEV','#7cc4ee','dev'],[8.25,'UAT','#8fd6a1','uat']].forEach(([a,label,col,id])=>{const b=a+.9;
+      s+=`<g class="furn" id="f-${id}">`
+        +poly([P(a-.08,0,0),P(b+.08,0,0),P(b+.08,0,100),P(a-.08,0,100)],'#fffaf0','stroke="#c9b894" stroke-width="2"')
+        +poly([P(a,0,4),P(b,0,4),P(b,0,94),P(a,0,94)],col,'stroke="#fff" stroke-width="1.5"')
+        +poly([P(a+.12,0,50),P(b-.12,0,50),P(b-.12,0,84),P(a+.12,0,84)],'#fff','opacity=".35"')
+        +wallText(a,0,0,`<circle cx="27" cy="-44" r="3" fill="#fff" stroke="#9aa0ad"/><rect x="5" y="-112" width="22" height="9" rx="3" fill="#fff" stroke="#c9b894"/><text x="16" y="-105" text-anchor="middle" font-size="8" font-weight="700" fill="#4a3b52">${label}</text><circle class="lamp lamp-ok" id="lamp-${id}" cx="16" cy="-122" r="5.5" stroke="#fff" stroke-width="1.5"/>`)
+        +`</g>`});
+    const dx0=.5,dx1=1.5,dm=1.0;
+    s+=`<polygon points="${pts([P(dx0-.1,0,0),P(dx1+.1,0,0),P(dx1+.1,0,100),P(dx0-.1,0,100)])}" fill="#9b7be0" opacity=".35" filter="url(#blur6)"><animate attributeName="opacity" values=".15;.5;.15" dur="2.6s" repeatCount="indefinite"/></polygon>`;
+    s+=`<g id="prod" class="furn">`
+      +poly([P(dx0,0,0),P(dx1,0,0),P(dx1,0,80),P(dx1-.08,0,92),P(dm,0,100),P(dx0+.08,0,92),P(dx0,0,80)],'#4a3b6b','stroke="#2c2142" stroke-width="4"')
+      +poly([P(dx0+.1,0,6),P(dx1-.1,0,6),P(dx1-.1,0,80),P(dx1-.15,0,88),P(dm,0,94),P(dx0+.15,0,88),P(dx0+.1,0,80)],'#2e2347','stroke="#b58cff" stroke-opacity=".6" stroke-width="1.5"')
+      +poly([P(dx0+.1,0,6),P(dx0+.3,0,6),P(dx0+.3,0,88),P(dx0+.1,0,80)],'#fff','opacity=".07"')
+      +wallText(dx0,0,0,`<text x="22" y="-62" text-anchor="middle" font-size="26" font-weight="700" fill="#b58cff" opacity=".85">?</text>`
+        +`<path d="M4 -78 L40 -24 M4 -26 L40 -78" stroke="#9aa0ad" stroke-width="4" stroke-dasharray="6 3"/>`
+        +`<rect x="13" y="-50" width="18" height="15" rx="3" fill="#f2c230" stroke="#9b7410" stroke-width="2"/><path d="M17 -50 V-58 A5 5 0 0 1 27 -58 V-50" fill="none" stroke="#9b7410" stroke-width="3"/><circle cx="22" cy="-42" r="2.5" fill="#6b4a10"/>`)
+      +wallText(dx0-.05,0,104,`<rect x="0" y="-13" width="48" height="15" rx="4" fill="#2c2142"/><text x="24" y="-2" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">PROD</text>`)
+      +`</g>`;
+  }
+  return s;
+}
+
+/* ---------- Glass elevator in the back-right corner, linking both floors ---------- */
+function elevatorSvg(){
+  const {x0:X0,x1:X1,y0:Y0,y1:Y1}=ELEV,Ht=FT+WALL+24,DH=110;
+  const fr=(a,b,z0,z1,fill,ex='')=>poly([P(a,Y1,z0),P(b,Y1,z0),P(b,Y1,z1),P(a,Y1,z1)],fill,ex);
+  const rt=(a,b,z0,z1,fill,ex='')=>poly([P(X1,a,z0),P(X1,b,z0),P(X1,b,z1),P(X1,a,z1)],fill,ex);
+  const c={x0:10.4,x1:11.4,y0:.4,y1:1.5,h:112};
+  let s=`<g id="elev">`
+   +poly([P(X0,Y0,0),P(X1,Y0,0),P(X1,Y0,Ht),P(X0,Y0,Ht)],'#eaf8ff','opacity=".2"')
+   +poly([P(X0,Y0,0),P(X0,Y1,0),P(X0,Y1,Ht),P(X0,Y0,Ht)],'#cfeaff','opacity=".26"')
+   +poly([P(X0,Y0,0),P(X1,Y0,0),P(X1,Y1,0),P(X0,Y1,0)],'#bfe3f7','opacity=".35"')
+   +`<g id="car"><g id="carBack">`
+   +poly([P(c.x0,c.y0,2),P(c.x1,c.y0,2),P(c.x1,c.y0,c.h),P(c.x0,c.y0,c.h)],'#eaf8ff','opacity=".3"')
+   +poly([P(c.x0,c.y0,2),P(c.x0,c.y1,2),P(c.x0,c.y1,c.h),P(c.x0,c.y0,c.h)],'#cfeaff','opacity=".32"')
+   +poly([P(c.x0,c.y0,2),P(c.x1,c.y0,2),P(c.x1,c.y1,2),P(c.x0,c.y1,2)],'#cfeaff','opacity=".5"')
+   +poly([P(c.x0,c.y0,c.h),P(c.x1,c.y0,c.h),P(c.x1,c.y1,c.h),P(c.x0,c.y1,c.h)],'url(#gMetal)')
+   +poly([P(c.x0+.1,c.y0+.1,c.h-1),P(c.x1-.1,c.y0+.1,c.h-1),P(c.x1-.1,c.y1-.1,c.h-1),P(c.x0+.1,c.y1-.1,c.h-1)],'#fff7d6','opacity=".8"')
+   +`</g><g id="carRider"></g><g id="carFront">`
+   +poly([P(c.x0,c.y1,2),P(c.x1,c.y1,2),P(c.x1,c.y1,c.h),P(c.x0,c.y1,c.h)],'url(#gGlass)','stroke="#fff" stroke-width="2"')
+   +poly([P(c.x1,c.y0,2),P(c.x1,c.y1,2),P(c.x1,c.y1,c.h),P(c.x1,c.y0,c.h)],'url(#gGlass)','stroke="#fff" stroke-width="2"')
+   +poly([P(c.x0,c.y1,2),P(c.x1,c.y1,2),P(c.x1,c.y1,12),P(c.x0,c.y1,12)],'url(#gMetal)')
+   +`</g></g>`
+   +fr(X0,X1,0,Ht,'#d6ecff','opacity=".12"')+rt(Y0,Y1,0,Ht,'url(#gMetal)')+rt(Y0,Y1,0,Ht,'url(#gGlass)','stroke="#fff" stroke-width="1.5"')
+   +rt(Y0+.15,Y0+.3,0,Ht,'#fff','opacity=".28"')
+   +rt(Y0,Y1,-14,0,'#7d5d3b')+rt(Y0,Y1,FT-14,FT,'#7d5d3b');
+  [0,1].forEach(f=>{const z=f*FT;
+    s+=`<polygon id="dL${f}" fill="url(#gMetal)" stroke="#a9dcf5" stroke-width="1.5"/><polygon id="dR${f}" fill="url(#gMetal)" stroke="#a9dcf5" stroke-width="1.5"/>`
+      +fr(10.37,10.47,z,z+DH+10,'#d9f1ff')+fr(11.35,11.47,z,z+DH+10,'#d9f1ff')+fr(10.37,11.47,z+DH,z+DH+10,'#d9f1ff')
+      +wallText(10.6,Y1,z+DH+16,`<rect x="0" y="-12" width="36" height="14" rx="3" fill="#222"/><text class="ind" x="18" y="-1" text-anchor="middle" font-size="11" font-weight="700" fill="#7ff0c3">1</text>`);
+  });
+
+  const edge=(x,y)=>`<line x1="${P(x,y,0)[0]}" y1="${P(x,y,0)[1]}" x2="${P(x,y,Ht)[0]}" y2="${P(x,y,Ht)[1]}" stroke="#fff" stroke-opacity=".9" stroke-width="2.4" stroke-linecap="round"/>`;
+  s+=edge(X1,Y0)+edge(X1,Y1)+edge(X0,Y1);
+  s+=rt(Y0+.35,Y0+.5,0,Ht,'#fff','opacity=".22"')+rt(Y0+.75,Y0+.82,0,Ht,'#fff','opacity=".16"');
+  [[.3,.35,0],[.7,.62,.9],[.45,.85,1.7],[.8,.2,2.4],[.2,.7,3.1]].forEach(([u,v,d])=>{
+    const [px,py]=P(X1,Y0+(Y1-Y0)*u,Ht*v);
+    s+=`<path d="M${px} ${py-9} L${px+2.4} ${py-2.4} L${px+9} ${py} L${px+2.4} ${py+2.4} L${px} ${py+9} L${px-2.4} ${py+2.4} L${px-9} ${py} L${px-2.4} ${py-2.4}Z" fill="#fff"><animate attributeName="opacity" values="0;.95;0" dur="3.2s" begin="-${d}s" repeatCount="indefinite"/></path>`});
+  return s+box(X0,Y0,X1-X0,Y1-Y0,10,['#d5ddeb','#9aa8c0','#a9dcf5'],Ht)+`</g>`;
+}
+
+/* ---------- Table with a laptop for every cat ---------- */
+function tableSvg(f){
+  const {x,y,w,d,h}=TABLE,grey=['#d6dae2','#b8bcc6','#9aa0ac'];
+  let s=`<g>`+poly([P(x+.25,y+.3),P(x+w+.4,y+.3),P(x+w+.4,y+d+.5),P(x+.25,y+d+.5)],'#1f3a37','opacity=".3" filter="url(#blur3)"')
+    +box(x,y,w,d,h,['url(#gTable)','#e3d0b2','#cdb792'],0,'wood')
+    +poly([P(x,y+d,h),P(x+w,y+d,h),P(x+w,y+d,h-2.5),P(x,y+d,h-2.5)],'#fff','opacity=".55"');
+  STEPS.forEach((st,i)=>{
+    if(flOf(i)!==f)return;
+    const sx=seatOf(i).x,ly=y+1.2;
+    s+=`<g class="lp front" id="lp-${st.id}">`
+      +box(sx-.32,ly+.06,.64,.5,2.2,['#e8ebf1','#c8ccd6','#b0b5c1'],h)
+      +`<g class="lid">`+box(sx-.32,ly,.64,.06,20,grey,h+2)+`</g></g>`;
+  });
+  // papers + bottles sit in the gaps between laptops
+  s+=poly([P(4.45,2.1,h+.4),P(4.95,2.1,h+.4),P(4.95,2.45,h+.4),P(4.45,2.45,h+.4)],'#fff','stroke="#cdbfa6"');
+  [[3.23,2.2],[6.03,2.2]].forEach(([px,py])=>s+=box(px,py,.14,.14,14,['#cfe9ff','#9fd0f5','#86bde8'],h));
+  return s+`</g>`;
+}
+
+/* ---------- Furniture for cats ---------- */
+function furnitureList(f){
+  const F=[],sfx=f?'2':'';
+  const sh=(x,y,rx,ry=rx*.32)=>{const [a,b]=P(x,y);F.push([depth(x,y)-.02,`<ellipse cx="${a+6}" cy="${b+3}" rx="${rx}" ry="${ry}" fill="#2d1f10" opacity=".24" filter="url(#blur3)"/>`])};
+  const plant=(x,y)=>{const [px,py]=P(x,y);return [depth(x,y),`<g transform="translate(${px} ${py})"><path d="M-11 -16 L11 -16 L8 0 L-8 0Z" fill="#c97b4a"/><g transform="translate(0 -14) scale(.5)">${palm()}</g></g>`]};
+  const post=(x,y,id='')=>{
+    let p=box(x,y,1.0,1.0,5,['#b7a8e0','#9b8cc4','#8577b0'],0,'fabric');
+    for(let k=0;k<10;k++)p+=box(x+.3,y+.3,.4,.4,5.4,k%2?['#d9b77e','#c9a56a','#b8955a']:['#e6c892','#d6b47c','#c4a268'],5+k*5.4);
+    return [depth(x,y+1.0),`<g class="furn" id="f-post${id}${sfx}">`+p+box(x+.25,y+.25,.5,.5,4,['#ffb3c1','#e8909f','#d97d8c'],59,'fabric')+`</g>`]};
+  const bowl=(x,y)=>{const [fx,fy]=P(x,y);
+    return [depth(x,y),`<g class="furn" id="f-bowl${sfx}"><ellipse cx="${fx-18}" cy="${fy}" rx="14" ry="7" fill="#5aa9e6"/><ellipse cx="${fx-18}" cy="${fy-2}" rx="10" ry="4.5" fill="#bfe3ff"/><ellipse cx="${fx+16}" cy="${fy}" rx="14" ry="7" fill="#e57b8c"/><ellipse cx="${fx+16}" cy="${fy-2}" rx="10" ry="4.5" fill="#8a5a44"/><text x="${fx+8}" y="${fy-6}" font-size="14">🐟</text></g>`]};
+  const yarn=(x,y,c,id)=>{const [yx,yy]=P(x,y);return [depth(x,y),`<g class="furn" id="f-yarn${id}"><circle cx="${yx}" cy="${yy-8}" r="9" fill="${c}"/><path d="M${yx-8} ${yy-8} q8 -6 16 0 M${yx-6} ${yy-3} q6 -8 12 -2" stroke="#fff" stroke-opacity=".6" fill="none" stroke-width="1.5"/><path d="M${yx+8} ${yy-4} q10 6 18 2" stroke="${c}" fill="none" stroke-width="2"/></g>`]};
+  // Pantry against the back wall where the bookshelf used to be: a water cooler and an ice-cream freezer, both clickable.
+  const counter=['#ffffff','#e6f6f1','#c9e8df'];
+  const water=(x,y)=>{const [wx,wy]=P(x+.4,y+.4,34);
+    return [depth(x,y+.8),`<g class="furn" id="f-water">`+box(x,y,.8,.8,34,counter,0,'stone')+`<g transform="translate(${wx} ${wy})"><rect x="-13" y="-30" width="26" height="30" rx="4" fill="#f4fbff" stroke="#b7d9e6"/><rect x="-9" y="-62" width="18" height="34" rx="9" fill="#8fd8f0" fill-opacity=".75" stroke="#5cb8d8"/><path d="M-5 -50 q5 -5 10 0" stroke="#fff" fill="none" stroke-width="2"/><rect x="-4" y="-18" width="8" height="6" rx="2" fill="#2d6cdf"/><rect x="-8" y="-8" width="16" height="3" rx="1" fill="#cfe5ee"/></g></g>`]};
+  const icecream=(x,y)=>{const [ix,iy]=P(x+.4,y+.4,34);
+    return [depth(x,y+.8),`<g class="furn" id="f-ice">`+box(x,y,.8,.8,34,['#ffe3ec','#ffc9d9','#f2a8be'],0,'stone')+`<g transform="translate(${ix} ${iy})"><path d="M-20 0 L20 0 L16 -22 L-16 -22Z" fill="#fff" stroke="#f2a8be"/><ellipse cx="0" cy="-22" rx="16" ry="7" fill="#bfe9f7" stroke="#8fd0e8"/><rect x="-22" y="-52" width="44" height="12" rx="3" fill="#ff7aa2"/><text x="0" y="-42" font-size="9" text-anchor="middle" fill="#fff" font-weight="700">${T('ICE CREAM')}</text><text x="0" y="-26" font-size="22" text-anchor="middle">🍦</text></g></g>`]};
+  const scope=(x,y)=>{const [tx,ty]=P(x,y);return [depth(x,y),`<g transform="translate(${tx} ${ty})"><path d="M0 -34 L-14 0 M0 -34 L14 0 M0 -34 L2 0" stroke="#8a6a4a" stroke-width="3" stroke-linecap="round"/><g transform="translate(0 -40) rotate(-24)"><rect x="-26" y="-6" width="46" height="12" rx="5" fill="#f4fbff" stroke="#9fc8d8" stroke-width="1.5"/><rect x="-32" y="-8" width="10" height="16" rx="4" fill="#59b59a"/><rect x="14" y="-5" width="10" height="10" rx="3" fill="#2d6cdf"/></g></g>`]};
+  const cart=(x,y)=>{const [cx,cy]=P(x,y);return [depth(x,y),`<g transform="translate(${cx} ${cy})"><ellipse cx="2" cy="4" rx="34" ry="9" fill="#2d1f10" opacity=".18"/><path d="M-30 -30 L30 -30 L30 -2 L-30 -2Z" fill="#ffc9d4" stroke="#f2a6b8"/><path d="M-30 -30 L30 -30 L26 -36 L-26 -36Z" fill="#fff"/><rect x="-24" y="-24" width="20" height="16" rx="3" fill="#fff" opacity=".7"/><g transform="translate(-6 -38)"><rect x="-8" y="-12" width="16" height="12" rx="2" fill="#7a5a3a"/><rect x="-5" y="-8" width="10" height="3" fill="#c9d4d9"/></g><g transform="translate(14 -38)"><rect x="-4" y="-8" width="8" height="8" rx="2" fill="#fff" stroke="#cfd8dc"/><rect x="-3" y="-5" width="6" height="5" fill="#8fbf5a"/></g><circle cx="-24" cy="2" r="4" fill="#444"/><circle cx="24" cy="2" r="4" fill="#444"/><path d="M-30 -30 L-33 -50 L33 -50 L30 -30Z" fill="#ff9fb8" opacity=".0"/></g>`]};
+  if(!f){
+    F.push(water(.15,.1),icecream(1.0,.1));sh(.55,.6,30,10);sh(1.4,.6,30,10);
+    F.push(plant(9.6,4.9));sh(9.6,4.9,20);sh(.8,4.55,56,18);
+    // cat tree with a napping cat on top
+    const tx0=0.3,ty0=4.05;
+    F.push([depth(tx0,ty0+1.0),`<g class="furn" id="f-tree">`
+      +box(tx0,ty0,1.0,1.0,6,['#9b8cc4','#7f70a8','#6f6199'],0,'fabric')+box(tx0+.35,ty0+.35,.3,.3,96,['#d9b77e','#c9a56a','#b8955a'],6,'wood')
+      +box(tx0-.2,ty0-.2,1.0,1.0,5,['#b7a8e0','#9b8cc4','#8577b0'],42,'fabric')+box(tx0,ty0,1.0,1.0,5,['#ffb3c1','#e8909f','#d97d8c'],100,'fabric')
+      +(()=>{const [tx,ty]=P(tx0+.5,ty0+.5,105);
+         return `<g class="swing"><line x1="${tx+26}" y1="${ty+16}" x2="${tx+26}" y2="${ty+42}" stroke="#777" stroke-width="2"/><circle cx="${tx+26}" cy="${ty+48}" r="7" fill="#ff6b6b"/></g>`
+         +`<g><ellipse cx="${tx}" cy="${ty-6}" rx="15" ry="8" fill="#f6a54a"/><circle cx="${tx-12}" cy="${ty-8}" r="8" fill="#f6a54a"/><polygon points="${tx-19},${ty-13} ${tx-17},${ty-21} ${tx-12},${ty-15}" fill="#f6a54a"/><polygon points="${tx-8},${ty-15} ${tx-6},${ty-20} ${tx-4},${ty-12}" fill="#f6a54a"/><path d="M${tx-16} ${ty-8} q2 2 4 0 M${tx-10} ${ty-8} q2 2 4 0" stroke="#3a2a2a" fill="none" stroke-width="1.3"/><path d="M${tx+12} ${ty-6} q14 -4 10 -16" stroke="#f6a54a" fill="none" stroke-width="5" stroke-linecap="round"/></g>`})()
+      +`</g>`]);
+  }else{
+    F.push(plant(.6,4.9),scope(.5,2.3),cart(.6,3.4));sh(.5,2.3,18);sh(.6,3.4,32,9);
+    sh(.6,4.9,20);sh(4.5,4.65,44,9);
+    F.push(post(4.0,4.15));
+  }
+  return F;
+}
+
+/* ---------- Actors: z-order + movement ---------- */
+function reorder(el){
+  const L=el.parentNode,d=el.__d,p=el.previousElementSibling,n=el.nextElementSibling;
+  if((!p||p.__d<=d)&&(!n||n.__d>=d))return;
+  let ref=null;for(const c of L.children){if(c!==el&&c.__d>d){ref=c;break}}
+  L.insertBefore(el,ref);
+}
+function mover({el,flipEl,pos,off,walkOn,walkOff}){
+  const o={el,pos,off,
+    apply(){const [px,py]=P(o.pos[0],o.pos[1]);
+      el.setAttribute('transform',`translate(${px.toFixed(1)} ${(py+o.off).toFixed(1)})`);
+      el.__d=depth(o.pos[0],o.pos[1])+(o.bias||0);reorder(el);o.onMove&&o.onMove()},
+    face(dx){if(Math.abs(dx)>1)flipEl.setAttribute('transform',`scale(${dx<0?-1:1} 1)`)},
+    walk(on){on?walkOn():walkOff()}};
+  return o;
+}
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function glide(o,tx,ty,dur){
+  return new Promise(res=>{
+    const [x0,y0]=o.pos,t0=performance.now();
+    (function step(t){
+      const k=Math.min(1,(t-t0)/dur),e=ease(k);
+      o.pos=[x0+(tx-x0)*e,y0+(ty-y0)*e];o.apply();
+      k<1?requestAnimationFrame(step):res();
+    })(t0);
+  });
+}
+// Walk around the table, never across it.
+const OBST={x0:1.5,x1:8.1,y0:.5,y1:2.95},CORNERS=[[1.3,.4],[8.3,.4],[8.3,3.05],[1.3,3.05]];
+const clear=(a,b)=>{for(let t=0;t<=1;t+=.04){const x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t;
+  if(x>OBST.x0&&x<OBST.x1&&y>OBST.y0&&y<OBST.y1)return false}return true};
+function route(a,b){
+  const len=p=>p.slice(1).reduce((s,q,i)=>s+Math.hypot(q[0]-p[i][0],q[1]-p[i][1]),0);
+  const ok=p=>p.slice(1).every((q,i)=>clear(p[i],q));
+  const cands=[[a,b],...CORNERS.map(c=>[a,c,b]),...CORNERS.flatMap(c=>CORNERS.filter(d=>d!==c).map(d=>[a,c,d,b]))];
+  return cands.filter(ok).sort((p,q)=>len(p)-len(q))[0]||[a,b];
+}
+async function walkTo(o,x,y,msPerUnit=330){
+  const path=route([...o.pos],[x,y]);
+  for(const [px,py] of path.slice(1)){
+    const [x0,y0]=o.pos,dist=Math.hypot(px-x0,py-y0);if(dist<.02)continue;
+    o.face(P(px,py)[0]-P(x0,y0)[0]);o.walk(true);
+    await glide(o,px,py,Math.max(350,dist*msPerUnit));
+  }
+  o.walk(false);
+}
+
+/* ---------- Elevator ---------- */
+const tween=(ms,fn)=>new Promise(res=>{const t0=performance.now();(function st(t){const k=Math.min(1,(t-t0)/ms);fn(ease(k));k<1?requestAnimationFrame(st):res()})(t0)});
+const carSet=z=>$('car').setAttribute('transform',`translate(0 ${(-z).toFixed(1)})`);
+function doorSet(f,o){
+  const {y1:Y1}=ELEV,z0=f*FT+2,z1=f*FT+108,a=10.45,b=11.35,w=.45*(1-o);
+  $('dL'+f).setAttribute('points',pts([P(a,Y1,z0),P(a+w,Y1,z0),P(a+w,Y1,z1),P(a,Y1,z1)]));
+  $('dR'+f).setAttribute('points',pts([P(b-w,Y1,z0),P(b,Y1,z0),P(b,Y1,z1),P(b-w,Y1,z1)]));
+  $('dL'+f).style.display=$('dR'+f).style.display=o>.98?'none':'';
+}
+const doors=(f,open)=>tween(520,k=>doorSet(f,open?k:1-k));
+const setInd=t=>{document.querySelectorAll('.ind').forEach(e=>e.textContent=t);UIEV('lift',t)};
+let riding=false;
+function toLayer(o,layer,tagLayer,tagDy=0){layer.append(o.el);tagLayer.append(o.tag);o.tagDy=tagDy;o.apply()}
+// Walk to the lift, ride it, walk out on the other floor. Anyone can ride; there is one car, so riders queue.
+async function ride(o,f){
+  while(riding)await sleep(150);
+  if(o.fl===f)return;
+  riding=true;const from=o.fl,up=f>from;
+  try{
+    await walkTo(o,...ELEV.door);
+    o.face(-10);await doors(from,true);
+    toLayer(o,$('carRider'),$('tags'+(from+1)));
+    o.walk(true);o.face(P(...ELEV.in)[0]-P(...o.pos)[0]);
+    await glide(o,...ELEV.in,550);o.walk(false);
+    await doors(from,false);
+    setInd(up?'▲':'▼');
+    toLayer(o,$('carRider'),$('tagsTop'),-from*FT);
+    const rideZ=(a,b)=>tween(2200*(b-a),k=>{const z=(from+(f-from)*(a+(b-a)*k))*FT;carSet(z);o.tagDy=-z;o.onMove()});
+    const jam=o.onJam&&f<from?.3+Math.random()*.4:null;  // a rider may get stuck on the way down
+    if(jam==null)await rideZ(0,1);
+    else{await rideZ(0,jam);setInd('⚠');const z=(from+(f-from)*jam)*FT;
+      await o.onJam(P(...ELEV.in)[0],P(...ELEV.in)[1]-z);setInd('▼');await rideZ(jam,1)}
+    setInd(String(f+1));o.fl=f;
+    await doors(f,true);
+    toLayer(o,$('carRider'),$('tags'+(f+1)),0);o.tagDy=0;
+    o.walk(true);o.face(P(...ELEV.door)[0]-P(...o.pos)[0]);
+    await glide(o,...ELEV.door,550);o.walk(false);
+    toLayer(o,$('actors'+(f+1)),$('tags'+(f+1)),0);
+    await doors(f,false);
+  }finally{riding=false}
+}
+const rideTo=f=>ride(courier,f);
+async function goto(fl,x,y,ms){if(courier.fl!==fl)await rideTo(fl);await walkTo(courier,x,y,ms)}
+
+/* ---------- State ---------- */
+let running=false,courier,boss,cats={},curStep=null,selected=null;
+const actorsToAdd=[];
+const log=(t,c='')=>{const p=document.createElement('p');p.className=c;
+  p.textContent=new Date().toLocaleTimeString()+'  '+T(t);$('log').prepend(p);
+  if(!$('logpop').classList.contains('open'))$('logbtn').classList.add('new');UIEV('log',T(t),c)};
+const mark=(id,cls,on)=>[$('c-'+id),$('lp-'+id),$('s-'+id)].forEach(e=>e&&e.classList.toggle(cls,on));
+function buildSteps(){STEPS.forEach(s=>{
+  const e=document.createElement('span');e.id='s-'+s.id;e.tabIndex=0;e.dataset.tip=(STEPS.indexOf(s)+1)+'. '+T(s.name);
+  const b=document.createElement('b');b.textContent=s.icon;e.append(b);$('steps').append(e)})}
+const SYM={todo:'⬜',active:'▶️',done:'✅',bug:'⚠️'};
+function board(id,state){const st=STEPS.findIndex(s=>s.id===id);
+  $('b-'+id).textContent=`${SYM[state]} ${st+1} ${T(STEPS[st].name)}`;
+  if(id==='ops'){UIEV('lamp',state);const l=$('lamp-dev');if(l)l.setAttribute('class','lamp '+(state==='active'?'lamp-busy':'lamp-ok'))}}
+function boardReset(q){STEPS.forEach(s=>board(s.id,'todo'));$('b-quest').textContent=q||T('Waiting for a quest…')}
+
+const tagItems=[];
+function addTag(name,d,fl=0){
+  const w=name.length*5.6+12;
+  const g=mk(`<g class="tag"><rect x="${-w/2}" y="-83" width="${w}" height="12.5" rx="6.25" fill="rgba(255,255,255,.62)" stroke="rgba(255,255,255,.75)" stroke-width=".8"/>`
+    +`<path d="M${-w/2+5} -82.2 H${w/2-5}" stroke="rgba(255,255,255,.85)" stroke-width=".8" stroke-linecap="round"/>`
+    +`<text x="0" y="-74" text-anchor="middle" font-size="8.5" font-weight="700" fill="#3c3052">${name}</text></g>`);
+  tagItems.push([d,g,fl]);return g;
+}
+const placeTag=(g,pos,dy,k)=>{const [px,py]=P(pos[0],pos[1]);g.setAttribute('transform',`translate(${px.toFixed(1)} ${(py+dy).toFixed(1)}) scale(${k})`)};
+function sit(c){c.sitting=true;c.inner.setAttribute('transform',`translate(0 ${SEAT}) scale(.88)`);
+  c.catin.innerHTML=catParts(c.cat,c.seat.back);c.flip.removeAttribute('transform');c.mv.onMove()}
+function stand(c){c.sitting=false;c.inner.setAttribute('transform','scale(.88)');
+  c.catin.innerHTML=catParts(c.cat,false);c.mv.onMove()}
+function buildActors(){
+  const badges=`<text class="emo" x="0" y="-92" text-anchor="middle" font-size="18"></text><text class="alert" x="0" y="-92" text-anchor="middle" font-size="20">❗</text><text class="okb" x="0" y="-92" text-anchor="middle" font-size="18">✅</text>`;
+  STEPS.forEach((st,i)=>{
+    const S=seatOf(i),fl=S.fl,d=(-Math.random()*3).toFixed(2);
+    const [px,py]=P(S.x,S.y);
+    const chair=mk(`<g transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"><ellipse cx="6" cy="14" rx="27" ry="8" fill="#2d1f10" opacity=".25" filter="url(#blur3)"/><rect x="-2" y="-10" width="4" height="16" fill="#555"/><ellipse cx="0" cy="9" rx="19" ry="6" fill="#444"/><circle cx="-16" cy="11" r="3" fill="#222"/><circle cx="16" cy="11" r="3" fill="#222"/><circle cx="0" cy="14" r="3" fill="#222"/><ellipse cx="0" cy="-8" rx="22" ry="9.5" fill="#3f6c7a"/><ellipse cx="0" cy="-8" rx="22" ry="9.5" fill="url(#t-fabric-T)" pointer-events="none"/><ellipse cx="0" cy="-10" rx="18" ry="6.5" fill="#fff" opacity=".2"/></g>`);
+    actorsToAdd.push([depth(S.x,S.y)-.002,chair,fl]);
+    const el=mk(`<g class="c" id="c-${st.id}" style="--d:${d}s"><ellipse class="shd" cx="4" cy="14" rx="24" ry="7" fill="#2d1f10" opacity=".22" filter="url(#blur3)"/><ellipse class="ring" cx="0" cy="12" rx="34" ry="14" fill="none" stroke="#ff7a59" stroke-width="3" stroke-dasharray="6 4"/>`
+      +`<g class="inner"><g class="flip"><g class="catin"></g></g>${badges}</g></g>`);
+    const c=cats[st.id]={el,emo:el.querySelector('.emo'),who:st.who,cat:st.cat,i,fl,seat:S,
+      inner:el.querySelector('.inner'),flip:el.querySelector('.flip'),catin:el.querySelector('.catin')};
+    c.tag=addTag(st.who.name,depth(S.x,S.y),fl);
+    c.mv=mover({el,flipEl:c.flip,pos:[S.x,S.y],off:0,walkOn:()=>el.classList.add('walking'),walkOff:()=>el.classList.remove('walking')});
+    c.mv.fl=fl;c.mv.tag=c.tag;c.mv.tagDy=0;
+    c.mv.onMove=()=>placeTag(c.tag,c.mv.pos,(c.sitting?SEAT:0)+c.mv.tagDy,.88);
+    sit(c);
+    el.setAttribute('transform',`translate(${px.toFixed(1)} ${py.toFixed(1)})`);el.__d=depth(S.x,S.y);
+    actorsToAdd.push([el.__d,el,fl]);
+  });
+  // boss by the window on floor 1
+  const bel=mk(`<g class="boss" id="boss" style="--d:-1s"><ellipse cx="4" cy="10" rx="24" ry="7" fill="#2d1f10" opacity=".22" filter="url(#blur3)"/><ellipse class="ring" cx="0" cy="8" rx="30" ry="12" fill="none" stroke="#ff7a59" stroke-width="3" stroke-dasharray="6 4"/>`
+    +`<g transform="scale(.88)"><g class="catin"><g class="flip">${catParts(BOSS.cat)}</g></g></g></g>`);
+  boss={el:bel,pos:[1.0,.85],fl:1};
+  const [bpx,bpy]=P(...boss.pos);bel.setAttribute('transform',`translate(${bpx.toFixed(1)} ${bpy.toFixed(1)})`);
+  bel.__d=depth(...boss.pos);actorsToAdd.push([bel.__d,bel,1]);placeTag(addTag(BOSS.name,bel.__d,1),boss.pos,0,.88);
+  // courier cat Claude
+  const cel=mk(`<g id="courier" style="--d:-.5s"><ellipse cx="4" cy="10" rx="24" ry="7" fill="#2d1f10" opacity=".22" filter="url(#blur3)"/><ellipse class="ring" cx="0" cy="8" rx="30" ry="12" fill="none" stroke="#ff7a59" stroke-width="3" stroke-dasharray="6 4"/>`
+    +`<g transform="scale(.88)"><g id="cflip"><g id="cwalk" class="catin">${catParts({body:'#ffd27a',outfit:'#ff8c42',acc:['pack','ticket']})}</g></g></g>`
+    +`<text id="cemo" x="0" y="-92" text-anchor="middle" font-size="18"></text></g>`);
+  courier=mover({el:cel,flipEl:cel.querySelector('#cflip'),pos:[...HOME],off:0,
+    walkOn:()=>$('cwalk').classList.add('walk'),walkOff:()=>$('cwalk').classList.remove('walk')});
+  actorsToAdd.push([depth(...HOME),cel,0]);
+  courier.fl=0;courier.tagDy=0;
+  const ctag=addTag('Claude',0,0);courier.tag=ctag;courier.onMove=()=>placeTag(ctag,courier.pos,courier.tagDy,1);courier.onMove();
+  actorsToAdd.sort((a,b)=>a[0]-b[0]);
+  actorsToAdd.forEach(([d,el,fl])=>{el.__d=d;$('actors'+(fl+1)).append(el)});
+  courier.apply();
+  Object.values(cats).forEach(c=>c.mv.apply());
+  tagItems.sort((a,b)=>a[0]-b[0]).forEach(([,g,fl])=>$('tags'+(fl+1)).append(g));
+  doorSet(0,0);doorSet(1,0);setInd('1');
+}
+function buildScene(){
+  const lay=n=>`<g id="actors${n}"></g><g id="tags${n}"></g>`;
+  let BASE=[60,-120,900,1190],Z=1,CX=0,CY=0;
+  let vbRaf=0,mvT=0;
+  const applyVB=()=>{hideHint();UIEV('view');scene.classList.add('moving');clearTimeout(mvT);mvT=setTimeout(()=>scene.classList.remove('moving'),160);scene.classList.toggle('zoomed',Z>1);if(!vbRaf)vbRaf=requestAnimationFrame(()=>{vbRaf=0;applyVB0()})};
+  const applyVB0=()=>{const [bx,by,bw,bh]=BASE,w=bw/Z,h=bh/Z;
+    CX=Math.max(0,Math.min(bw-w,CX));CY=Math.max(0,Math.min(bh-h,CY));if(Z==1)CX=CY=0;
+    scene.setAttribute('viewBox',`${bx+CX} ${by+CY} ${w} ${h}`)};
+  const fitVB=()=>{BASE=innerWidth<=600?[70,-120,880,1200]:(innerWidth>=900&&innerWidth>innerHeight?[-378,-80,1776,1160]:[60,-120,900,1190]);applyVB()};fitVB();addEventListener('resize',fitVB);
+  const zoomAt=(nz,fx,fy)=>{nz=Math.max(1,Math.min(3.5,nz));const [,,bw,bh]=BASE,ox=CX+bw/Z*fx,oy=CY+bh/Z*fy;Z=nz;CX=ox-bw/Z*fx;CY=oy-bh/Z*fy;applyVB()};
+  const stg=$('stage');
+  stg.insertAdjacentHTML('beforeend','<button id="qbtn" title="'+T('Character info')+'" aria-label="'+T('Character info')+'">?</button><div id="zoomc"><button id="zrst" title="'+T('Reset view')+'" aria-label="'+T('Reset view')+'">⌂</button></div>');
+  $('zrst').onclick=()=>{Z=1;applyVB()};
+  // camera API for the UI layer: fly to an element, read the current view as fractions of the base view
+  window.CAM={get z(){return Z},base:()=>BASE,reset(){CAM.fly(.5,.5,1)},
+    frac(el){const r=scene.getBoundingClientRect(),b=el.getBoundingClientRect(),[,,bw,bh]=BASE;
+      return [(CX+((b.left+b.width/2-r.left)/r.width)*bw/Z)/bw,(CY+((b.top+b.height/2-r.top)/r.height)*bh/Z)/bh]},
+    view(){return {x:CX/BASE[2],y:CY/BASE[3],w:1/Z,h:1/Z}},
+    fly(fx,fy,nz){nz=Math.max(1,Math.min(3.5,nz));const [,,bw,bh]=BASE,z0=Z,x0=CX,y0=CY,t0=performance.now();
+      const tx=fx*bw-bw/nz/2,ty=fy*bh-bh/nz/2;
+      (function st(t){const k=Math.min(1,(t-t0)/650),e=ease(k);Z=z0+(nz-z0)*e;CX=x0+(tx-x0)*e;CY=y0+(ty-y0)*e;applyVB();if(k<1)requestAnimationFrame(st)})(t0)}};
+  stg.addEventListener('wheel',e=>{e.preventDefault();const r=scene.getBoundingClientRect();zoomAt(Z*(e.deltaY<0?1.15:1/1.15),(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height)},{passive:false});
+  const ptrs=new Map();let moved=false,pd0=0,pz0=1;
+  stg.addEventListener('pointerdown',e=>{if(e.target.closest('button,#profile,#decree,#logpop,#card,#clock,#wx,#steps,#sagebox,.ui2'))return;ptrs.set(e.pointerId,[e.clientX,e.clientY]);moved=false;if(ptrs.size==2){const [a,b]=[...ptrs.values()];pd0=Math.hypot(a[0]-b[0],a[1]-b[1]);pz0=Z}});
+  addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;const r=scene.getBoundingClientRect(),[,,bw,bh]=BASE;
+    if(ptrs.size==2){ptrs.set(e.pointerId,[e.clientX,e.clientY]);const [a,b]=[...ptrs.values()];moved=true;zoomAt(pz0*Math.hypot(a[0]-b[0],a[1]-b[1])/pd0,((a[0]+b[0])/2-r.left)/r.width,((a[1]+b[1])/2-r.top)/r.height);return}
+    const dx=e.clientX-p[0],dy=e.clientY-p[1];if(!moved&&Math.hypot(dx,dy)<6)return;
+    if(Z>1){moved=true;CX-=dx*bw/Z/r.width;CY-=dy*bh/Z/r.height;applyVB();ptrs.set(e.pointerId,[e.clientX,e.clientY])}});
+  const pend=e=>{ptrs.delete(e.pointerId)};addEventListener('pointerup',pend);addEventListener('pointercancel',pend);
+  stg.addEventListener('click',e=>{if(moved){e.stopPropagation();e.preventDefault();moved=false}},true);
+  scene.innerHTML=outside()+plinth()+`<g id="beachA"></g>`
+    +`<g id="fl1">`+floorBase(0)+lay(1)+`</g>`
+    +`<g id="fl2" transform="translate(0 ${-FT})">`+floorBase(1)+lay(2)+`</g>`
+    +awning()+elevatorSvg()+`<g id="tagsTop"></g><g id="skyA"></g>`
+    +`<rect id="tint" x="-700" y="-300" width="2400" height="1500" fill="none" opacity="0" style="mix-blend-mode:multiply;pointer-events:none"/>`
+    +`<g id="chat"></g><g id="bub" style="display:none"><rect id="bubr" rx="10" fill="#fff" stroke="#4a3b52" stroke-width="2"/><text id="bubt" font-size="15" font-weight="700" fill="#4a3b52"></text></g>`
+    +`<text id="zzz" x="0" y="0" font-size="22">💤</text>`;
+  [0,1].forEach(f=>{const t=mk(tableSvg(f));t.__d=3;actorsToAdd.push([3,t,f]);
+    furnitureList(f).forEach(([d,str])=>actorsToAdd.push([d,mk(str),f]))});
+}
+
+/* ---------- Speech bubble ---------- */
+// Long speech wraps onto several lines instead of stretching sideways; the bubble grows upward.
+function wrapText(text,max){
+  const out=[];let cur='';
+  for(const w of String(text).split(/\s+/)){
+    if(cur&&(cur+' '+w).length>max){out.push(cur);cur=w}else cur=cur?cur+' '+w:w}
+  if(cur)out.push(cur);return out.length?out:[''];
+}
+function setLines(t,lines,x,y0,lh){
+  t.textContent='';
+  lines.forEach((ln,i)=>{const ts=document.createElementNS(NS,'tspan');ts.textContent=ln;ts.setAttribute('x',x);ts.setAttribute('y',y0+i*lh);t.append(ts)});
+}
+function say(text,x,y,z=96,fl=0){
+  text=T(text);
+  const [px,py0]=P(x,y,z),py=py0-fl*FT,t=$('bubt'),r=$('bubr'),lines=wrapText(text,30),lh=18,n=lines.length;
+  t.textContent=lines.reduce((a,b)=>a.length>b.length?a:b);$('bub').style.display='';
+  const w=t.getComputedTextLength()+20,bx=Math.max(70,Math.min(950-w,px-w/2));
+  const y1=py+1-(n-1)*lh;
+  r.setAttribute('x',bx);r.setAttribute('y',y1-19);r.setAttribute('width',w);r.setAttribute('height',(n-1)*lh+28);
+  setLines(t,lines,bx+10,y1,lh);
+}
+const hideSay=()=>{$('bub').style.display='none'};
+const sayCat=(text,id)=>{const c=cats[id];say(text,c.mv.pos[0],c.mv.pos[1],100,c.fl)};
+const sayBoss=text=>{boss.el.classList.add('talk');say(text,boss.pos[0],boss.pos[1],100,boss.fl);setTimeout(()=>boss.el.classList.remove('talk'),1600)};
+
+/* ---------- Cards: incidents + approval gates ---------- */
+function ask(card,build,isGate){
+  return new Promise(resolve=>{
+    const c=$('card');c.innerHTML='';c.className=isGate?'gate':'';c.style.display='block';
+    const h=document.createElement('h3');h.textContent=T(card.title);
+    const p=document.createElement('p');p.textContent=T(card.text);
+    const o=document.createElement('div');o.className='opts';
+    c.append(h,p,o);build(o,resolve);
+  });
+}
+const hideCard=()=>{$('card').style.display='none'};
+async function incident(st){
+  let wrongs=0;const inc=st.incident;mark(st.id,'active',false);mark(st.id,'bug',true);board(st.id,'bug');log(inc.title,'bad');
+  const pr=ask(inc,(box,done)=>inc.opts.forEach(([label,right,why])=>{
+    const b=document.createElement('button');b.textContent=T(label);
+    b.onclick=()=>{if(right){SND.play('ding');log('✔ '+T(why),'ok');done()}else{wrongs++;SND.play('bonk');b.disabled=true;b.classList.add('wrong');log('✘ '+T(why),'bad')}};
+    box.append(b);
+  }));
+  try{window.PLAYBOOK&&PLAYBOOK.tagIncident($('card'))}catch(e){}
+  await pr;
+  hideCard();mark(st.id,'bug',false);board(st.id,'active');UIEV('incident',wrongs);
+}
+async function gate(st){
+  const g=st.gate;sayBoss('Hmm… may they go ahead?');SND.play('bonk');
+  const ok=await ask(g,(box,done)=>{
+    let tm;const fin=v=>{clearTimeout(tm);done(v)};
+    [[g.ok,true,'allow','✅ '],[g.no,false,'deny','✋ ']].forEach(([label,v,cls,ic])=>{
+      const b=document.createElement('button');b.className=cls;b.textContent=ic+T(label);b.onclick=()=>fin(v);box.append(b)});
+    const cd=document.createElement('div');cd.className='cd';cd.innerHTML='<i></i><span></span>';box.after(cd);
+    let left=30;const tick=()=>{cd.querySelector('span').textContent=T('Auto-deny in {0}s (the safe default)',left);if(left--<=0){log('Auto-denied after 30 seconds without an answer (safe default).','warn');fin(false)}else tm=setTimeout(tick,1000)};tick();
+  },true);
+  hideCard();return ok;
+}
+
+/* ---------- Claude's idle life ---------- */
+const SPOTS=[
+  {fl:0,at:[5.7,4.95],act:'eat',emo:'🐟',ms:2800},
+  {fl:0,at:[7.3,4.85],act:'play',emo:'🧶',ms:2400},
+  {fl:0,at:[0.7,3.0],act:'sit',emo:'🌊',ms:3000},
+  {fl:1,at:[4.0,4.95],act:'eat',emo:'💧',ms:2200},
+  
+  {fl:1,at:[2.1,1.35],act:'sit',emo:'🔒',ms:2000},{fl:1,at:[0.7,3.0],act:'nap',emo:'💤',ms:3400}
+];
+let wanderTask=null,recall=false,lastSpot=-1;
+const taken=new Set();
+function pickSpot(fl){
+  const f=SPOTS.map((_,k)=>k).filter(k=>!taken.has(k)&&k!==lastSpot&&(fl==null||SPOTS[k].fl===fl));
+  const same=fl==null?f.filter(k=>SPOTS[k].fl===courier.fl):[];
+  const pool=same.length&&Math.random()<.65?same:f;
+  return pool.length?pool[Math.floor(Math.random()*pool.length)]:-1;
+}
+async function sleepR(ms,stop=()=>recall){const end=performance.now()+ms;while(performance.now()<end&&!stop())await sleep(120)}
+async function claudeAct(s){
+  const w=$('cwalk');w.classList.add(s.act);$('cemo').textContent=s.emo;
+  await sleepR(s.ms);w.classList.remove(s.act);$('cemo').textContent='';
+}
+async function wander(){
+  recall=false;const k=pickSpot();if(k<0)return;lastSpot=k;taken.add(k);
+  try{await goto(SPOTS[k].fl,...SPOTS[k].at,520);if(!recall)await claudeAct(SPOTS[k])}finally{taken.delete(k)}
+}
+function idleTick(){
+  if(running||wanderTask)return;
+  if(Math.random()>.5)return;
+  wanderTask=wander().finally(()=>{wanderTask=null});
+}
+// Staff get up from their chairs, use the room, then go back to their seat.
+async function outing(id,spot){
+  const c=cats[id],k=spot?-1:pickSpot(cats[id].fl);if(!spot&&k<0)return;
+  if(!spot){lastSpot=k;taken.add(k)}c.busy=c.away=true;c.recall=false;
+  const s=spot||SPOTS[k],out=spotOf(c.i),cls='a-'+s.act;
+  try{
+    stand(c);c.mv.walk(true);await glide(c.mv,out[0],out[1],450);c.mv.walk(false);
+    await walkTo(c.mv,...s.at,520);
+    if(spot){c.mv.bias=1.2;c.mv.apply();if(s.say)speak(id,s.say,2600)}   // stand in front of tall furniture, not behind it
+    if(!c.recall){c.el.classList.add(cls);c.emo.textContent=s.emo;
+      await sleepR(s.ms,()=>c.recall);c.el.classList.remove(cls);c.emo.textContent=''}
+    c.mv.bias=0;c.mv.apply();
+    await walkTo(c.mv,...out,520);
+    c.mv.walk(true);await glide(c.mv,c.seat.x,c.seat.y,450);c.mv.walk(false);
+    sit(c);
+  }finally{c.mv.bias=0;if(k>=0)taken.delete(k);c.busy=c.away=false}
+}
+function outingTick(){
+  if(running)return;
+  const all=Object.entries(cats);
+  if(all.filter(([,c])=>c.away).length>=2||Math.random()>.55)return;
+  const pool=all.filter(([,c])=>!c.busy);if(!pool.length)return;
+  const [id,c]=pool[Math.floor(Math.random()*pool.length)];
+  c.task=outing(id);
+}
+/* ---------- Beach outings: sunbathing, swimming, snowball fights and stargazing ---------- */
+const BEACH={
+  sun:{spots:[[190,1000],[470,1025]],max:2,emo:'😎',ms:[9000,14000],
+    say:["Vitamin D, loading…","Sun's out, tails out.","Five more minutes of tan.","SPF 50 on the whiskers.","Best. Standup. Ever."]},
+  swim:{spots:[[160,430],[165,590]],via:[[200,975],[130,800]],max:2,emo:'🌊',ms:[11000,17000],
+    say:["Water's lovely! Wet whiskers, happy cat.","Splash! Nobody told me cats can't swim.","Floating on a ring > floating on a sprint.","Paddling to the standup. Slowly.","Is that a fish or a deploy log?","Ahh, the cloud is just water up there."]},
+  star:{spots:[[190,1000],[470,1025]],max:2,emo:'⭐',ms:[10000,15000],
+    say:["So many stars… and zero open tickets.","Make a wish. Mine is green CI.","That one looks like a tuna.","Is that Orion or a merge conflict?","Quiet. Only waves and stars."]},
+  snow:{spots:[[500,1022],[610,1036],[380,1042]],max:3,emo:'❄️',ms:[12000,18000],
+    say:["Snowball fight! No code review!","Incoming!","Cold paws, warm heart.","You missed! Meow-ha!","Snow cat > snow man."]}
+};
+const outdoor={},beachTaken=new Set(),BEACH_IN=[612,998];
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+// which outing the weather allows right now (a sunny day offers both sunbathing and swimming)
+const kindOk=k=>{const p=curPhase(),day=p==='morning'||p==='noon';
+  return weather==='snow'?k==='snow':weather==='sunny'&&day?k==='sun'||k==='swim':weather==='sunny'&&p==='night'?k==='star':false};
+const pickKind=()=>{const p=curPhase();
+  return weather==='snow'?'snow':weather==='sunny'&&(p==='morning'||p==='noon')?(Math.random()<.4?'swim':'sun'):weather==='sunny'&&p==='night'?'star':null};
+const hideCat=(c,on)=>{c.el.style.display=on?'none':'';c.tag.style.display=on?'none':''};
+async function oglide(id,to,ms=null){
+  const o=outdoor[id],[x0,y0]=o.xy;ms=ms??Math.hypot(to[0]-x0,to[1]-y0)*5;
+  o.flip.setAttribute('transform',`scale(${to[0]<x0?-1:1} 1)`);o.el.classList.add('walking');
+  await tween(ms,k=>{o.xy=[x0+(to[0]-x0)*k,y0+(to[1]-y0)*k];o.el.setAttribute('transform',`translate(${o.xy[0].toFixed(1)} ${o.xy[1].toFixed(1)})`)});
+  o.el.classList.remove('walking');
+}
+function snowball(from){
+  const a=outdoor[from];if(!a)return;
+  const others=Object.entries(outdoor).filter(([k,o])=>k!==from&&o.kind==='snow');
+  const b=others.length?rand(others)[1].xy:[a.xy[0]+(Math.random()<.5?-1:1)*90,a.xy[1]-10];
+  const ball=mk('<circle r="6" fill="#fff" stroke="#c9d6ee" stroke-width="1.5"/>');$('beachA').append(ball);
+  const x0=a.xy[0],y0=a.xy[1]-70,x1=b[0],y1=b[1]-60;
+  tween(700,k=>ball.setAttribute('transform',`translate(${(x0+(x1-x0)*k).toFixed(1)} ${(y0+(y1-y0)*k-Math.sin(k*Math.PI)*50).toFixed(1)})`)).then(()=>ball.remove());
+}
+// In the sea the cat wears a swim ring: paddling upright with the lower half underwater, or lying back on the ring.
+function seaGear(o,id,on){
+  const q=n=>o.el.querySelector(n);
+  q('.rip').style.display=on?'':'none';q('.shd').style.display=on?'none':'';
+  if(!on){q('.gb').innerHTML=q('.gf').innerHTML='';q('.clip').removeAttribute('clip-path');return}
+  const ring=(d,w,col)=>`<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+  if(o.mode==='swim'){
+    const up='M-31 -4 A31 11 0 0 1 31 -4',dn='M-31 -4 A31 11 0 0 0 31 -4';
+    q('.gb').innerHTML=ring(up,9,'#ff5d6c')+`<path d="${up}" fill="none" stroke="#fff" stroke-width="9" stroke-dasharray="9 13"/>`;
+    q('.gf').innerHTML=ring(dn,9,'#ff5d6c')+`<path d="${dn}" fill="none" stroke="#fff" stroke-width="9" stroke-dasharray="9 13"/>`;
+    q('.clip').setAttribute('clip-path',`url(#swc-${id})`);
+  }else{
+    const full='M-44 6 A44 15 0 1 1 44 6 A44 15 0 1 1 -44 6Z';
+    q('.gb').innerHTML=ring(full,11,'#4fb6c9')+`<path d="${full}" fill="none" stroke="#fff" stroke-width="11" stroke-dasharray="11 17"/>`;
+  }
+}
+const chuteSvg='<g class="chute" style="display:none"><path d="M-44 -104 Q-44 -158 0 -158 Q44 -158 44 -104 Q31 -113 22 -104 Q11 -113 0 -104 Q-11 -113 -22 -104 Q-31 -113 -44 -104Z" fill="#ff7a59" stroke="#c24b2e" stroke-width="1.5"/><path d="M-14 -105 Q-12 -156 0 -157 Q12 -156 14 -105 Q7 -111 0 -105 Q-7 -111 -14 -105Z" fill="#fff" opacity=".85"/><path d="M-44 -104 L-6 -66 M44 -104 L6 -66 M-22 -104 L-3 -66 M22 -104 L3 -66" stroke="#fff" stroke-width="1.3" fill="none"/></g>';
+function beachSprite(c,id,lie){
+  return mk(`<g class="c"><defs><clipPath id="swc-${id}"><rect x="-70" y="-130" width="140" height="120"/></clipPath></defs>`
+    +`<ellipse class="shd" cx="4" cy="14" rx="${lie?40:24}" ry="7" fill="#2d1f10" opacity=".22" filter="url(#blur3)"/>`
+    +`<g class="rip" style="display:none" fill="none" stroke="#fff" stroke-width="2"><ellipse cy="8" rx="30" ry="8" opacity=".7"><animate attributeName="rx" values="30;52;30" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0;.7" dur="2.6s" repeatCount="indefinite"/></ellipse></g>`
+    +`<g class="bob">${chuteSvg}<g class="gb"></g><g class="clip"><g class="pose" transform="scale(.88)"><g class="flip"><g class="catin">${catParts(c.cat,false)}</g></g></g></g><g class="gf"></g></g>`
+    +`<text class="emo" x="0" y="-92" text-anchor="middle" font-size="18"></text></g>`);
+}
+function spawnOut(c,id,kind,mode,xy,layer=$('beachA')){
+  const el=beachSprite(c,id,kind==='sun'||kind==='star');
+  el.setAttribute('transform',`translate(${xy[0].toFixed(1)} ${xy[1].toFixed(1)})`);layer.append(el);
+  el.addEventListener('click',()=>poke(id));
+  return outdoor[id]={el,kind,mode,xy:[...xy],flip:el.querySelector('.flip'),pose:el.querySelector('.pose'),emo:el.querySelector('.emo'),bob:el.querySelector('.bob'),chute:el.querySelector('.chute')};
+}
+// Stuck in the lift: the cat pops out with a parachute, floats down past the building and lands on the sand.
+async function descend(id,x0,y0,to){
+  const o=outdoor[id];o.chute.style.display='';
+  await tween(3600,k=>{const sw=Math.sin(k*9)*(1-k),x=x0+(to[0]-x0)*k+sw*16,y=y0+(to[1]-y0)*k;
+    o.xy=[x,y];o.el.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    o.bob.setAttribute('transform',`rotate(${(sw*8).toFixed(1)} 0 -110)`)});
+  o.bob.removeAttribute('transform');
+  await tween(450,k=>o.chute.setAttribute('transform',`translate(0 ${(k*60).toFixed(1)}) scale(1 ${(1-k*.9).toFixed(2)})`));
+  o.chute.style.display='none';o.chute.removeAttribute('transform');$('beachA').append(o.el);
+}
+// A cat leaves through the lift door, crosses the sand to its spot, enjoys the weather, then comes back to its seat.
+async function beachOuting(id,kind,ix){
+  const c=cats[id],B=BEACH[kind],at=B.spots[ix],out=spotOf(c.i),lie=kind==='sun'||kind==='star',key=kind+ix;
+  const mode=kind==='swim'&&Math.random()<.5?'float':'swim';
+  const stop=()=>c.recall||!kindOk(kind);
+  beachTaken.add(key);c.busy=c.away=true;c.recall=false;
+  try{
+    stand(c);c.mv.walk(true);await glide(c.mv,out[0],out[1],450);c.mv.walk(false);
+    let chuteP=null;
+    if(c.fl===1&&Math.random()<.35)c.mv.onJam=async(x,y)=>{   // upstairs cats sometimes get stuck on the way down
+      c.emo.textContent='🚨';speak(id,rand(["Stuck in the lift again! Parachute time! 🪂","Lift jammed. I'm jumping!","Ride's over. Opening the parachute!"]),2600,[x,y-90]);
+      await sleep(1800);c.emo.textContent='';hideCat(c,true);
+      spawnOut(c,id,kind,mode,[x,y],$('skyA'));chuteP=descend(id,x,y,[690,992])};
+    await ride(c.mv,0);c.mv.onJam=null;
+    if(chuteP)await chuteP;
+    else{await walkTo(c.mv,...ELEV.door,400);hideCat(c,true);spawnOut(c,id,kind,mode,BEACH_IN)}
+    const o=outdoor[id],el=o.el;
+    for(const v of B.via||[])await oglide(id,v);
+    await oglide(id,at);
+    if(!stop()){
+      if(lie)el.classList.add('a-lie');
+      if(lie){o.pose.setAttribute('transform','translate(36 -4) rotate(-90) scale(.88)');o.emo.setAttribute('y',-48)}
+      if(kind==='swim'){el.classList.add(mode==='float'?'a-float':'a-swim');seaGear(o,id,true);if(mode==='float'){o.pose.setAttribute('transform','translate(34 -12) rotate(-90) scale(.88)');o.emo.setAttribute('y',-52)}}
+      o.emo.textContent=B.emo;
+      const end=performance.now()+B.ms[0]+Math.random()*(B.ms[1]-B.ms[0]);
+      let say=performance.now()+1500+Math.random()*2000,thr=performance.now()+800+Math.random()*1500,drift=performance.now()+2500;
+      while(performance.now()<end&&!stop()){
+        await sleep(120);const now=performance.now();
+        if(kind==='swim')o.bob.setAttribute('transform',`translate(0 ${(Math.sin(now/420)*3).toFixed(1)}) rotate(${(Math.sin(now/900)*(mode==='float'?2.5:1.2)).toFixed(1)})`);
+        if(kind==='swim'&&mode==='swim'&&now>drift){drift=now+4000+Math.random()*2500;
+          await oglide(id,[at[0]+(Math.random()*2-1)*22,at[1]+(Math.random()*2-1)*28],2200)}
+        if(now>say){say=now+3800+Math.random()*3000;speak(id,rand(B.say),3000)}
+        if(kind==='snow'&&now>thr){thr=now+1800+Math.random()*1200;snowball(id);
+          el.classList.add('a-play');setTimeout(()=>el.classList.remove('a-play'),700)}
+      }
+      el.classList.remove('a-lie','a-swim','a-float');o.emo.textContent='';o.pose.setAttribute('transform','scale(.88)');o.emo.setAttribute('y',-92);
+      if(kind==='swim'){seaGear(o,id,false);o.bob.removeAttribute('transform')}
+    }
+    for(const v of [...(B.via||[])].reverse())await oglide(id,v);
+    await oglide(id,BEACH_IN);el.remove();delete outdoor[id];
+    hideCat(c,false);
+    await ride(c.mv,c.fl);
+    await walkTo(c.mv,...out,400);
+    c.mv.walk(true);await glide(c.mv,c.seat.x,c.seat.y,450);c.mv.walk(false);sit(c);
+  }finally{
+    c.mv.onJam=null;
+    if(outdoor[id]){outdoor[id].el.remove();delete outdoor[id]}
+    hideCat(c,false);beachTaken.delete(key);c.busy=c.away=false}
+}
+function beachTick(){
+  if(running||watching)return;
+  const kind=pickKind();if(!kind||Math.random()>.3)return;
+  const B=BEACH[kind],here=Object.values(outdoor).filter(o=>o.kind===kind).length;
+  const free=B.spots.map((_,k)=>k).filter(k=>!beachTaken.has(kind+k));
+  const pool=Object.entries(cats).filter(([id,c])=>!c.busy&&!c.away&&c.sitting&&id!==curStep);
+  if(!free.length||here>=B.max||!pool.length)return;
+  // a snowball fight needs a partner, so the first two go together
+  const n=kind==='snow'&&!here?Math.min(2,free.length,pool.length):1;
+  pool.sort(()=>Math.random()-.5).slice(0,n).forEach(([id,c],j)=>{c.task=beachOuting(id,kind,free[j])});
+}
+// Seated staff fidget a little so the room feels alive.
+function fidgetTick(){
+  const pool=Object.entries(cats).filter(([id,c])=>id!==curStep&&c.sitting&&!c.el.classList.contains('bug')&&!c.busy);
+  if(!pool.length||Math.random()>.7)return;
+  const [id,c]=pool[Math.floor(Math.random()*pool.length)];c.busy=true;
+  const a=['stretch','sip','think','type','snack','idea','nap','wave','yawn','groom','dance'][Math.floor(Math.random()*11)];
+  if(a==='stretch'){c.el.classList.add('stretch');setTimeout(()=>{c.el.classList.remove('stretch');c.busy=false},950)}
+  else if(a==='type'){c.el.classList.add('a-type');c.emo.textContent='⌨️';setTimeout(()=>{c.el.classList.remove('a-type');c.emo.textContent='';c.busy=false},2200)}
+  else if(['nap','wave','yawn','groom','dance'].includes(a)){const k='a-'+a;c.el.classList.add(k);c.emo.textContent={nap:'💤',wave:'👋',yawn:'🥱',groom:'✨',dance:'🎵'}[a];setTimeout(()=>{c.el.classList.remove(k);c.emo.textContent='';c.busy=false},{nap:3200,wave:1600,yawn:2300,groom:2800,dance:2600}[a])}
+  else{c.emo.textContent={sip:'☕',think:'💭',snack:'🍪',idea:'💡'}[a];setTimeout(()=>{c.emo.textContent='';c.busy=false},2000)}
+}
+
+/* ---------- Weather, chatter and sunset watching ---------- */
+const WX={sunny:{n:'☀️ Clear',dim:['#445',0],cl:null},rain:{n:'🌧️ Rain',dim:['#3d4a63',.28],cl:'#9aa6bb'},
+  snow:{n:'❄️ Snow',dim:['#aab7d0',.22],cl:'#e8eef8'},storm:{n:'⛈️ Storm',dim:['#161c33',.5],cl:'#5d6580'}};
+let weather='sunny',wxAuto=true;
+const curPhase=()=>phaseOverride||phaseOf(new Date().getHours());
+function pickLine(key,kind){
+  const v=VOICE[key],ph={morning:'m',noon:'d',sunset:'s',night:'n'}[curPhase()];
+  let pool=kind?v[kind]:null;
+  if(!pool){const ctx=[...v[ph],...(v[weather]||[])];pool=ctx.length&&Math.random()<.5?ctx:v.g}
+  let t,n=0;do{t=pool[Math.floor(Math.random()*pool.length)]}while(t===v.last&&pool.length>1&&++n<6);
+  v.last=t;return t;
+}
+const chatEls={};
+function speak(key,text,ms=3400,at=null){
+  text=T(text);
+  if(key==='sage'&&!at)at=SAGE.at;
+  const od=outdoor[key],o=key==='boss'?boss:key==='claude'?courier:key==='sage'?SAGE:cats[key].mv;if(!o)return;
+  const fl=od||key==='sage'?0:key==='boss'?boss.fl:key==='claude'?courier.fl:cats[key].mv.fl,[px,py0]=at||(od?[od.xy[0],od.xy[1]-100]:P(o.pos[0],o.pos[1],100)),py=at?py0:py0-fl*FT;
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.setAttribute('class','chat');
+  g.innerHTML=`<rect rx="9" fill="rgba(255,255,255,.94)" stroke="#4a3b52" stroke-width="1.5"/><text font-size="11.5" font-weight="700" fill="#4a3b52"></text>`;
+  $('chat').append(g);const t=g.querySelector('text'),r=g.querySelector('rect'),lines=wrapText(text,28),lh=14,n=lines.length;
+  t.textContent=lines.reduce((a,b)=>a.length>b.length?a:b);
+  const w=t.getComputedTextLength()+16,bx=Math.max(68,Math.min(952-w,px-w/2)),by=py-30,y1=by+1-(n-1)*lh;
+  r.setAttribute('x',bx);r.setAttribute('y',y1-15);r.setAttribute('width',w);r.setAttribute('height',(n-1)*lh+21);
+  setLines(t,lines,bx+8,y1,lh);
+  if(chatEls[key])chatEls[key].remove();chatEls[key]=g;
+  setTimeout(()=>{g.remove();if(chatEls[key]===g)delete chatEls[key]},ms);
+}
+function chatTick(){
+  if(running||Object.keys(chatEls).length>=2||Math.random()>.55)return;
+  const pool=Object.entries(cats).filter(([,c])=>!c.away&&!c.busy||c.watching).map(([id])=>id);
+  pool.push('boss');if(!wanderTask&&!riding)pool.push('claude');if(!SAGE.open)pool.push('sage');
+  const key=pool[Math.floor(Math.random()*pool.length)];speak(key,pickLine(key));
+}
+const WSPOTS=[[0.7,2.3],[0.7,3.4]];
+const WATCH={sunset:{emo:'🌇',call:'Sunset time! Come watch with me!'},snow:{emo:'❄️',call:'It is snowing! Window, quick!'},storm:{emo:'⚡',call:'Come see the storm from the window!'}};
+let watching=false,lastWatch=-1e9;
+const watchKind=()=>weather==='snow'?'snow':weather==='storm'?'storm':curPhase()==='sunset'&&weather==='sunny'?'sunset':null;
+async function watchOne(id,at,kind,delay){
+  const c=cats[id],out=spotOf(c.i);c.busy=c.away=true;c.recall=false;
+  try{
+    await sleepR(delay,()=>c.recall);if(c.recall)return;
+    stand(c);c.mv.walk(true);await glide(c.mv,out[0],out[1],450);c.mv.walk(false);
+    await walkTo(c.mv,...at,520);
+    if(!c.recall){c.mv.face(-10);c.watching=true;c.emo.textContent=WATCH[kind].emo;
+      for(let n=0;n<3&&!c.recall;n++){await sleepR(2600+Math.random()*2400,()=>c.recall);if(!c.recall)speak(id,pickLine(id,kind),3200)}
+      await sleepR(1200,()=>c.recall)}
+    c.watching=false;c.emo.textContent='';
+    await walkTo(c.mv,...out,520);
+    c.mv.walk(true);await glide(c.mv,c.seat.x,c.seat.y,450);c.mv.walk(false);sit(c);
+  }finally{c.watching=false;c.busy=c.away=false}
+}
+async function watchParty(kind){
+  const cnt=[0,0],crew=[];
+  Object.keys(cats).filter(id=>!cats[id].busy).sort(()=>Math.random()-.5).forEach(id=>{
+    const fl=cats[id].fl;if(crew.length<4&&cnt[fl]<2){crew.push([id,WSPOTS[cnt[fl]++]])}});
+  if(crew.length<3)return;
+  watching=true;
+  speak(crew[0][0],WATCH[kind].call,2800);log(T('{0} {1} invites the team to the window.',WATCH[kind].emo,cats[crew[0][0]].who.name));
+  try{await Promise.all(crew.map(([id,at],i)=>cats[id].task=watchOne(id,at,kind,i*700)))}
+  finally{watching=false;lastWatch=performance.now()}
+}
+function watchTick(){
+  if(running||watching||performance.now()-lastWatch<45000)return;
+  const k=watchKind();if(k&&Math.random()<.35)watchParty(k);
+}
+function applyWeather(){
+  const w=WX[weather];
+  $('rainG').style.display=weather==='rain'||weather==='storm'?'':'none';
+  $('snowG').style.display=weather==='snow'?'':'none';
+  scene.classList.toggle('stormy',weather==='storm');
+  scene.classList.toggle('rainy',weather==='rain'||weather==='storm');scene.classList.toggle('snowy',weather==='snow');
+  $('wx').textContent=w.n.split(' ')[0];$('wx').title=T('Weather: {0}',T(w.n.replace(/^\S+\s*/,'')))+' '+(wxAuto?T('(auto)'):T('(preview)'))+' — '+T('click to change');$('wx').classList.toggle('pv',!wxAuto);
+  applyTime();
+}
+$('wx').onclick=e=>{e.stopPropagation();const ks=['auto',...Object.keys(WX)];
+  const n=ks[(ks.indexOf(wxAuto?'auto':weather)+1)%ks.length];
+  wxAuto=n==='auto';if(!wxAuto)weather=n;else weather='sunny';applyWeather()};
+function wxDrift(){
+  if(!wxAuto||Math.random()>.12)return;
+  const r=Math.random();weather=r<.5?'sunny':r<.72?'rain':r<.84?'snow':'storm';applyWeather();
+}
+function lightning(){
+  if(weather!=='storm')return;const f=$('flash');f.classList.remove('go');void f.getBoundingClientRect();f.classList.add('go');
+  if(Math.random()<.5&&!running)speak(Object.keys(cats)[Math.floor(Math.random()*8)],['Eek! ⚡','Did you see that?!','So loud!'][Math.floor(Math.random()*3)],1800);
+}
+
+/* ---------- Quest loop ---------- */
+// Only the cat whose step is running sits at a computer; the rest stand beside their desks.
+const outOf=c=>spotOf(c.i);
+async function leaveDesk(c){
+  if(!c.sitting)return;c.busy=true;stand(c);const o=outOf(c);
+  c.mv.walk(true);await glide(c.mv,o[0],o[1],450);c.mv.walk(false);c.mv.face(5);c.busy=false;
+}
+async function takeDesk(c){
+  if(c.sitting)return;c.busy=true;await walkTo(c.mv,...outOf(c),400);
+  c.mv.walk(true);await glide(c.mv,c.seat.x,c.seat.y,450);c.mv.walk(false);sit(c);c.busy=false;
+}
+// The finished cat passes the ticket to the next one, then gets up from the computer.
+async function handoff(i){
+  const c=cats[STEPS[i].id],nx=cats[STEPS[i+1]?.id];
+  c.emo.textContent='🎫';
+  if(nx){
+    if(nx.fl===c.fl){c.mv.face(P(...nx.mv.pos)[0]-P(...c.mv.pos)[0]);speak(STEPS[i].id,T("Tag, you're it, {0}! 🎫",nx.who.name),2200)}
+    else speak(STEPS[i].id,'Claude, take this upstairs! 🎫',2200);
+  }
+  await sleep(1100);c.emo.textContent='';await leaveDesk(c);
+}
+async function runQuest(q){
+  running=true;UIEV('begin',q);$('go').disabled=$('pen').disabled=true;$('reqin').disabled=true;hideSay();$('steps').classList.add('on');
+  recall=true;if(wanderTask)await wanderTask;
+  Object.values(cats).forEach(c=>c.recall=true);await Promise.all(Object.values(cats).map(c=>c.task));
+  STEPS.forEach(s=>['active','bug','done','cheer'].forEach(c=>mark(s.id,c,false)));
+  await Promise.all(Object.values(cats).map(leaveDesk));
+  boardReset(q);sayBoss(T('New quest: {0}',q));await sleep(2000);hideSay();
+  for(let i=0;i<STEPS.length;i++){
+    const st=STEPS[i];curStep=st.id;
+    if(!(await UIcp()))return abortQuest();
+    if(flOf(i)!==courier.fl){await goto(flOf(i-1),spotOf(i-1)[0]+.6,spotOf(i-1)[1]);await goto(flOf(i),spotOf(i)[0]+.6,spotOf(i)[1])}
+    await takeDesk(cats[st.id]);
+    sayCat(st.say,st.id);mark(st.id,'active',true);board(st.id,'active');log(st.log);refreshStatus();UIEV('start',i);
+    await sleep(1500);
+    if(!(await UIcp()))return abortQuest();
+    if(st.incident&&Math.random()<st.incident.p)await incident(st);
+    if(st.gate&&!(await gate(st))){
+      log('Quest cancelled (correct: never push or deploy unasked).','warn');UIEV('deny',i);
+      mark(st.id,'active',false);board(st.id,'todo');curStep=null;refreshStatus();await finish();return}
+    mark(st.id,'active',false);mark(st.id,'done',true);board(st.id,'done');SND.play('ding');UIEV('done',i);
+    if(['git','ops','qa'].includes(st.id)){
+      $('phone').classList.add('ping');$('logbtn').classList.add('ping');await sleep(1000);$('phone').classList.remove('ping');$('logbtn').classList.remove('ping');
+      log(T('📱 Phone: {0} finished',T(st.name)),'ok')}
+    await handoff(i);
+  }
+  curStep=null;refreshStatus();hideSay();
+  SND.play('fanfare');log('Quest complete!','ok');UIEV('complete',q);sayBoss('Great work, team!');
+  STEPS.forEach(s=>mark(s.id,'cheer',true));await sleep(2200);STEPS.forEach(s=>mark(s.id,'cheer',false));hideSay();
+  await Promise.all(Object.values(cats).map(takeDesk));await catBreak();await finish();
+}
+async function abortQuest(){
+  log('Quest cancelled by the boss.','warn');hideCard();hideSay();
+  STEPS.forEach(s=>{['active','bug','cheer'].forEach(c=>mark(s.id,c,false));if(!$('s-'+s.id).classList.contains('done'))board(s.id,'todo')});
+  curStep=null;refreshStatus();UIEV('cancel');await finish();
+}
+async function finish(){hideSay();await Promise.all(Object.values(cats).map(takeDesk));await goto(0,...HOME);$('steps').classList.remove('on');running=false;$('go').disabled=$('pen').disabled=false;$('reqin').disabled=false}
+// After a quest Claude takes a quick nap on the floor.
+async function catBreak(){
+  log('Break time: a quick nap on the floor.','warn');
+  await goto(0,4.1,4.6);
+  const [zx,zy]=P(4.1,4.6,70),z=$('zzz');z.setAttribute('x',zx);z.setAttribute('y',zy);z.style.display='block';
+  say('Zzz... recharging',4.1,4.6,90);await sleep(2800);z.style.display='none';
+}
+
+/* ---------- Profiles + clicks ---------- */
+let hintT,hintFresh=false;
+const elOf=key=>key==='boss'?boss.el:key==='claude'?courier.el:(outdoor[key]?outdoor[key].el:cats[key].el);
+function hideHint(){clearTimeout(hintT);const q=$('qbtn');if(q)q.style.display='none'}
+function showHint(key){
+  hideProfile();hideHint();
+  const el=elOf(key),r=el.getBoundingClientRect(),sr=$('stage').getBoundingClientRect(),q=$('qbtn');
+  el.classList.add('sel');
+  q.style.left=Math.max(4,Math.min(sr.width-34,r.right-sr.left-8))+'px';q.style.top=Math.max(4,r.top-sr.top-14)+'px';
+  hintFresh=true;setTimeout(()=>hintFresh=false);
+  q.style.display='block';q.onclick=e=>{e.stopPropagation();hideHint();showProfile(key)};
+  hintT=setTimeout(()=>{hideHint();if(!selected)document.querySelectorAll('.sel').forEach(e=>e.classList.remove('sel'))},4500);
+}
+function showProfile(key){
+  const info=key==='boss'?BOSS:key==='claude'?CLAUDE:cats[key].who;
+  const look=key==='boss'?BOSS.cat:key==='claude'?{body:'#ffd27a',outfit:'#ff8c42',acc:['pack']}:cats[key].cat;
+  selected=key;$('profile').style.display='';
+  // keep the clicked cat in view: lower-floor cats get the card at the top, upper-floor cats at the bottom
+  {const fl=key==='boss'?boss.fl:key==='claude'?courier.fl:cats[key].fl,pf=$('profile').style;pf.top=fl===0?'8px':'auto';pf.bottom=fl===0?'auto':'8px'}
+  document.querySelectorAll('.sel').forEach(e=>e.classList.remove('sel'));
+  (key==='boss'?boss.el:key==='claude'?courier.el:cats[key].el).classList.add('sel');
+  $('pf-av').innerHTML=catParts(look);
+  $('pf-name').textContent=info.name;$('pf-role').textContent=T(info.role);
+  $('pf-age').textContent=T('Age {0}',info.age)+(key==='claude'?T(' (year one in the office)'):'');
+  $('pf-bio').textContent=T(info.bio)+' '+T('Personality: {0}.',T(VOICE[key].trait));
+  $('pf-duty').innerHTML='';info.duties.forEach(d=>{const li=document.createElement('li');li.textContent=T(d);$('pf-duty').append(li)});
+  refreshStatus();UIEV('profile',key);
+}
+$('pf-x').onclick=e=>{e.stopPropagation();hideProfile()};
+function hideProfile(){
+  selected=null;$('profile').style.display='none';
+  document.querySelectorAll('.sel').forEach(e=>e.classList.remove('sel'));
+}
+document.addEventListener('click',e=>{if(!hintFresh&&!e.target.closest('#profile,.c,.boss,#courier,#qbtn,.ui2')){hideHint();hideProfile();if(!running)hideSay()}});
+function refreshStatus(){
+  if(!selected)return;let t='Idle';
+  if(selected==='boss')t=running?'Watching the quest':'Waiting for a new quest';
+  else if(selected==='claude')t=riding?'Riding the elevator':running?'Carrying the ticket':(wanderTask?'Taking a stroll':'Waiting for a quest');
+  else if(curStep===selected)t=T('Working: {0}',T(STEPS.find(s=>s.id===selected).log));
+  else if(cats[selected]&&cats[selected].away)t='Taking a break';
+  $('pf-status').textContent=T('Status: {0}',T(t));
+}
+const FURN={tree:[0.8,4.5,'Best view in the room. Purr.',0],
+  post2:[4.5,4.65,'Upstairs scratching post. Same stress relief.',1],
+  water:[.55,.5,'Cold water, free refills. Hydrate before you deploy.',0],ice:[1.4,.5,'Ice cream o\'clock. Brain freeze counts as testing.',0],
+  dev:[7.45,0.3,'DEV door: unlocked. A green lamp means the lane is free, but the cats still ask first.',1],uat:[8.7,0.3,'UAT door: unlocked too. Amber blinking means a deploy is in flight.',1],
+  prod:[1.0,1.0,'The PROD door is display only. Nobody deploys main or production here. At most an MR into main — and only after asking the boss.',1]};
+let chatT;
+function chatter(text,x,y,fl=0){if(running)return;say(text,x,y,70,fl);clearTimeout(chatT);chatT=setTimeout(hideSay,2400)}
+const BUSY=["Đang bận, miễn làm phiền!","Shhh, mèo đang cày. Quay lại sau nha!","Đừng chọc, đang vào flow rồi 😾","Bận! Tail đang đè phím, đừng hỏi.","Có việc gấp, miễn làm phiền, cảm ơn!","Chờ xíu, đang deadline. Meow sau nha."];
+// A cat at rest turns round to face you and says something random; a busy one waves you off.
+function poke(id){
+  const c=cats[id];showHint(id);
+  if(outdoor[id]){speak(id,rand(BEACH[outdoor[id].kind].say),3000);return}
+  if(running&&curStep===id){speak(id,BUSY[Math.floor(Math.random()*BUSY.length)],2800);return}
+  if(c.sitting){c.catin.innerHTML=catParts(c.cat,false);c.flip.removeAttribute('transform');
+    clearTimeout(c.turnT);c.turnT=setTimeout(()=>{if(c.sitting&&!(running&&curStep===id))sit(c)},3800)}
+  else c.flip.removeAttribute('transform');
+  c.el.classList.add('a-wave');setTimeout(()=>c.el.classList.remove('a-wave'),1500);
+  speak(id,pickLine(id),3400);
+}
+function initClicks(){
+  STEPS.forEach(st=>cats[st.id].el.addEventListener('click',()=>poke(st.id)));
+  boss.el.addEventListener('click',()=>{showHint('boss');speak('boss',pickLine('boss'),3400)});
+  courier.el.addEventListener('click',()=>{showHint('claude');speak('claude',pickLine('claude'),3400)});
+  Object.entries(FURN).forEach(([k,[x,y,t,fl]])=>$(k==='prod'?'prod':'f-'+k).addEventListener('click',()=>{
+    chatter(t,x,y,fl);if(k==='prod')log('🚫 '+t,'bad');else if(FUSE[k])useFurn(k)}));
+}
+// Clicking furniture while the team is between tasks sends the nearest free cat to use it.
+const FUSE={water:['eat','💧',2600,[0,1.15],['Glug glug… so refreshing!','Cold water. Now I can think.','Hydration complete 💧']],
+  ice:['eat','🍦',3200,[0,1.15],['Ice cream! Best. Quest. Reward.','Brain freeze… worth it 🍦','One scoop for me, none for the bugs.']],
+  tree:['sit','😸',3000],
+  post2:['scratch','✨',2400]};
+const furnBusy=new Set();
+async function useFurn(k){
+  if(running||furnBusy.has(k))return;
+  const [x,y,,fl]=FURN[k],[act,emo,ms,[dx,dy]=[0,.35],lines]=FUSE[k],spot={fl,at:[x+dx,y+dy],act,emo,ms,say:lines&&lines[Math.floor(Math.random()*lines.length)]};
+  const cand=Object.entries(cats).filter(([,c])=>c.fl===fl&&!c.busy&&!c.away)
+    .map(([id,c])=>({id,d:Math.hypot(x-c.seat.x,y-c.seat.y)}));
+  if(courier.fl===fl&&!riding)cand.push({id:'claude',d:Math.hypot(x-courier.pos[0],y-courier.pos[1])});
+  cand.sort((a,b)=>a.d-b.d);
+  const who=cand.length?cand[0].id:'claude';
+  furnBusy.add(k);UIEV('furn',k,who);
+  try{
+    if(who==='claude'){
+      recall=true;if(wanderTask)await wanderTask;if(running)return;recall=false;
+      wanderTask=(async()=>{await goto(fl,...spot.at,520);courier.bias=1.2;courier.apply();if(spot.say)speak('claude',spot.say,2600);try{if(!recall)await claudeAct({act,emo,ms})}finally{courier.bias=0;courier.apply()}})().finally(()=>{wanderTask=null});
+      await wanderTask;
+    }else{const c=cats[who];c.task=outing(who,spot);await c.task}
+  }finally{furnBusy.delete(k)}
+}
+
+// The pen opens a scroll that unrolls in the middle of the game; sealing it starts the quest.
+function openDecree(){if($('go').disabled)return;$('sign').classList.remove('on');const d=$('decree');d.classList.remove('closing');d.classList.add('open');setTimeout(()=>$('reqin').focus({preventScroll:true}),450)}
+function closeDecree(){const d=$('decree');if(!d.classList.contains('open'))return;d.classList.add('closing');setTimeout(()=>d.classList.remove('open','closing'),440)}
+$('logbtn').onclick=()=>{const l=$('logpop');l.classList.toggle('open');$('logbtn').classList.remove('new')};$('logx').onclick=()=>$('logpop').classList.remove('open');
+$('pen').onclick=openDecree;$('reqx').onclick=closeDecree;
+$('decree').onclick=e=>{if(e.target===$('decree'))closeDecree()};
+let sealing=false;
+$('seal').onclick=async()=>{if($('go').disabled||sealing)return;sealing=true;
+  const sg=$('sign');sg.classList.remove('on');void sg.offsetWidth;sg.classList.add('on');await sleep(1250);
+  closeDecree();sealing=false;$('go').click()};
+$('reqin').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();$('seal').click()}if(e.key==='Escape')closeDecree()};
+$('go').onclick=()=>{const typed=$('reqin').value.trim().replace(/\s*\n+\s*/g,' · '),q=typed||T(QUESTS[Math.floor(Math.random()*QUESTS.length)]);$('reqin').value='';
+  log(T('New quest: {0} — signed and stamped by Miss Big Na ✒️',q));runQuest(q)};
+
+// static markup: titles, labels and placeholders
+[['pf-x','title','Close'],['pf-x','aria-label','Close'],['pen','title','Write a request'],['pen','aria-label','Write a request'],
+ ['reqin','placeholder','Write the request… more lines are fine (blank = random). Ctrl+Enter to send.'],
+ ['logbtn','title','Activity log'],['logbtn','aria-label','Activity log'],['phone','title','Phone sync: pings when push, deploy or verify finishes'],['logx','aria-label','Close log']]
+ .forEach(([id,a,t])=>$(id).setAttribute(a,T(t)));
+$('decree').querySelector('small').textContent=T('📜 Write your request');
+$('sign').querySelector('em').textContent=T('Requested by');
+$('reqx').textContent=T('Cancel');$('seal').textContent=T('✒️ Sign & send');
+$('phone').textContent=T('📱 Remote sync');
+$('lang').textContent=LANG.toUpperCase();
+$('lang').onclick=e=>{e.stopPropagation();try{localStorage.setItem('lang',LANG==='vi'?'en':'vi')}catch(_){}location.reload()};
+/* ---------- Sound: everything is synthesised with Web Audio, so there are no audio files and nothing to license ---------- */
+const SND=(()=>{
+  let ctx,master,musicG,sfxG,on=true,started=false,step=0,nextT=0,timer=0;
+  try{on=localStorage.getItem('snd')!=='off'}catch(e){}
+  const init=()=>{if(ctx)return true;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
+    ctx=new AC();master=ctx.createGain();master.gain.value=on?1:0;master.connect(ctx.destination);
+    musicG=ctx.createGain();musicG.gain.value=vol.m;musicG.connect(master);sfxG=ctx.createGain();sfxG.gain.value=vol.s;sfxG.connect(master);return true};
+  const tone=(f,t,d,type='sine',v=.3,dest=sfxG,to=null)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+    if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.008);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+    o.connect(g);g.connect(dest);o.start(t);o.stop(t+d+.05)};
+  const pluck=(f,t,d,v)=>{const o=ctx.createOscillator(),g=ctx.createGain(),lp=ctx.createBiquadFilter();o.type='triangle';o.frequency.value=f;lp.type='lowpass';lp.frequency.value=2400;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(.0008,t+d);o.connect(lp);lp.connect(g);g.connect(musicG);o.start(t);o.stop(t+d+.05)};
+  const shaker=t=>{const n=ctx.createBufferSource(),b=ctx.createBuffer(1,2205,44100),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+    n.buffer=b;const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=6000;const g=ctx.createGain();g.gain.value=.12;n.connect(hp);hp.connect(g);g.connect(musicG);n.start(t)};
+  // original little ukulele loop: C - Am - F - G, major pentatonic tune on top
+  const CH=[[261.63,329.63,392,523.25],[220,261.63,329.63,440],[174.61,220,261.63,349.23],[196,246.94,293.66,392]];
+  const PEN=[523.25,587.33,659.25,783.99,880,1046.5],ARP=[0,1,2,1,3,1,2,1],EIGHTH=.27;
+  const sched=()=>{if(!ctx||!on)return;while(nextT<ctx.currentTime+.5){
+    const bar=Math.floor(step/8)%4,k=step%8,ch=CH[bar],t=nextT;
+    pluck(ch[ARP[k]],t,.5,.2);
+    if(k===0||k===4)pluck(ch[0],t,.45,.32);
+    if(k%2===1)shaker(t);
+    if((k===2||k===6)&&Math.random()<.65)pluck(PEN[Math.floor(Math.random()*PEN.length)],t,.7,.16);
+    step++;nextT+=EIGHTH}};
+  const startMusic=()=>{if(started||!ctx)return;started=true;nextT=ctx.currentTime+.1;timer=setInterval(sched,120)};
+  const SFX={
+    click:t=>tone(520,t,.09,'sine',.3,sfxG,880),
+    pop:t=>{tone(660,t,.07,'sine',.3,sfxG,990);tone(990,t+.06,.08,'sine',.2)},
+    boing:t=>tone(220,t,.28,'sine',.35,sfxG,520),
+    meow:t=>{const o=ctx.createOscillator(),g=ctx.createGain(),lp=ctx.createBiquadFilter();o.type='sawtooth';lp.type='lowpass';lp.Q.value=6;
+      o.frequency.setValueAtTime(520,t);o.frequency.linearRampToValueAtTime(880,t+.12);o.frequency.linearRampToValueAtTime(430,t+.42);
+      lp.frequency.setValueAtTime(700,t);lp.frequency.linearRampToValueAtTime(1800,t+.14);lp.frequency.linearRampToValueAtTime(600,t+.42);
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.22,t+.04);g.gain.linearRampToValueAtTime(.16,t+.25);g.gain.exponentialRampToValueAtTime(.001,t+.45);
+      o.connect(lp);lp.connect(g);g.connect(sfxG);o.start(t);o.stop(t+.5)},
+    ding:t=>{tone(784,t,.18,'triangle',.3);tone(1175,t+.1,.3,'triangle',.28)},
+    bonk:t=>tone(180,t,.22,'square',.2,sfxG,90),
+    fanfare:t=>[523.25,659.25,784,1046.5].forEach((f,i)=>tone(f,t+i*.11,.25,'triangle',.28))
+  };
+  const play=n=>{if(!on||!init())return;if(ctx.state==='suspended')ctx.resume();SFX[n](ctx.currentTime+.01)};
+  const vol={m:.32,s:.5};try{vol.m=+(localStorage.getItem('vm2')??.32);vol.s=+(localStorage.getItem('vs')??.5)}catch(e){}
+  const setVol=(k,v)=>{vol[k]=v;try{localStorage.setItem(k==='m'?'vm2':'vs',v)}catch(e){}if(k==='m'&&musicG)musicG.gain.value=v;if(k==='s'&&sfxG)sfxG.gain.value=v};
+  const label=()=>{const b=$('snd');b.textContent=on?'🔊':'🔇';b.title=T('Sound on/off')};
+  const set=v=>{on=v;try{localStorage.setItem('snd',v?'on':'off')}catch(e){}
+    if(v&&init()){master.gain.value=1;if(ctx.state==='suspended')ctx.resume();startMusic()}else if(master)master.gain.value=0;label()};
+  // Phones need the audio unlocked inside a real touch/click, and iOS also mutes Web Audio on the silent switch unless a media element is playing.
+  let el,unlocked=false;
+  const gesture=()=>{if(!on||!init())return;
+    try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+    if(!el){try{el=document.createElement('audio');el.loop=true;el.setAttribute('playsinline','');
+      const n=800,b=new Uint8Array(44+n),v=new DataView(b.buffer);const w=(o,t)=>[...t].forEach((c,i)=>b[o+i]=c.charCodeAt(0));
+      w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);b.fill(128,44);
+      el.src=URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}catch(e){el=null}}
+    if(el&&el.paused)el.play().catch(()=>{});
+    const go=()=>{unlocked=ctx.state==='running';startMusic()};
+    if(ctx.state!=='running'){const r=ctx.resume();r&&r.then?r.then(go,go):go()}else go();
+    try{const s=ctx.createBufferSource();s.buffer=ctx.createBuffer(1,1,22050);s.connect(ctx.destination);s.start(0)}catch(e){}};
+  ['touchstart','touchend','click','keydown'].forEach(n=>document.addEventListener(n,()=>{if(!unlocked||(ctx&&ctx.state!=='running'))gesture()},true));
+  document.addEventListener('visibilitychange',()=>{if(!ctx)return;document.hidden?ctx.suspend():(on&&ctx.resume())});
+  return {play,set,gesture,label,setVol,vol,get on(){return on}};
+})();
+SND.label();
+$('snd').onclick=e=>{e.stopPropagation();SND.set(!SND.on);if(SND.on)SND.play('pop')};
+// first tap unlocks audio (browsers require a gesture) and starts the music; then each tap gets a fitting sound
+document.addEventListener('pointerdown',e=>{SND.gesture();if(e.target.closest('#snd'))return;
+  const t=e.target;
+  if(t.closest('.c,.boss,#courier,.sage'))SND.play('meow');
+  else if(t.closest('.furn'))SND.play('boing');
+  else if(t.closest('button,#clock,#wx,#steps span'))SND.play('click')},true);
+/* ---------- Mr Biết Tuốt: a know-it-all cat on the lift roof who answers questions. It is a built-in script (keyword matching), not a real AI. ---------- */
+const SAGE={name:T('Mr Know-It-All'),at:null,open:false};
+VOICE.sage={trait:'Ancient, lazy, knows everything and says it slowly',m:[],d:[],s:[],n:[],rain:[],snow:[],storm:[],
+  g:["Zzz… who said my name?","I know everything. I just don't feel like saying it.","Ask me later. I'm resting my eyes.","In my day we had no autocomplete. Zzz.","Click me gently. I'm very old and very comfortable.","One eye open. Always one eye open.","Ask away… slowly."]};
+const L=(vi,en)=>LANG==='vi'?vi:en;
+const norm=t=>String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
+const hasW=(q,w)=>new RegExp('(^|[^a-z0-9])'+w+'([^a-z0-9]|$)').test(q);
+const JOKES=[
+  ["Tại sao mèo dev không deploy thứ Sáu? Vì cuối tuần phải đi bắt chuột… à nhầm, bắt bug.","Why don't cat devs deploy on Friday? Weekend mouse-hunting. Sorry, bug-hunting."],
+  ["Có hai loại log: log đọc được, và log do mèo ngồi lên bàn phím.","There are two kinds of logs: readable ones, and the ones a cat sat on the keyboard to write."],
+  ["git blame báo: thủ phạm chính là bạn, hồi tuần trước.","git blame says: the culprit is you, last week."],
+  ["Mèo không sợ merge conflict. Mèo sợ mỗi cái bồn tắm.","Cats don't fear merge conflicts. Only bathtubs."],
+  ["Test xanh hết là có vấn đề. Test đỏ hết thì… cũng có vấn đề. Testy nói vậy.","All tests green is suspicious. All red is also suspicious. Testy says so."],
+  ["Hỏi: bao nhiêu mèo để thay bóng đèn? Đáp: không cần, mèo chỉ đẩy nó rơi khỏi bàn.","How many cats to change a light bulb? None, they just knock it off the table."]];
+const topic=()=>L("Bạn thử hỏi: quy trình HCPH, ai làm bước nào, luật push/deploy, cách chơi, thang máy, thời tiết, âm thanh, hay kể chuyện cười nhé.","Try asking: the HCPH flow, who does which step, the push/deploy rules, how to play, the lift, weather, sound, or a joke.");
+const profileOf=(who,role,bio,duties)=>`${who} — ${T(role)}\n${T(bio)}\n`+duties.map(d=>'• '+T(d)).join('\n');
+function sageAnswer(raw){
+  const q=norm(raw);if(!q.trim())return topic();
+  {const pb=window.PLAYBOOK&&PLAYBOOK.answer(q);if(pb)return pb}
+  // 1) a cat's name
+  for(const st of STEPS){if((st.who.name+' '+st.who.en).toLowerCase().split(' ').some(tk=>tk.length>1&&hasW(q,norm(tk))))return profileOf(st.who.name,st.who.role,st.who.bio,st.who.duties)+(window.PLAYBOOK?'\n'+PLAYBOOK.line(st.id):'')}
+  if(hasW(q,'lido')||hasW(q,'lead')||hasW(q,'boss')||hasW(q,'sep'))return profileOf(BOSS.name,BOSS.role,BOSS.bio,BOSS.duties);
+  if(hasW(q,'claude')||hasW(q,'shipper'))return profileOf(CLAUDE.name,CLAUDE.role,CLAUDE.bio,CLAUDE.duties);
+  // 2) "who does step X?"
+  if(/\bai\b|\bwho\b/.test(q)){for(const st of STEPS){if(q.includes(norm(st.name))||q.includes(norm(T(st.name))))return L(`Bước "${T(st.name)}" do ${st.who.name} (${T(st.who.role)}) phụ trách.`,`The "${st.name}" step belongs to ${st.who.name} (${st.who.role}).`)}}
+  const I=[
+   [/xin chao|^chao|\bhello\b|\bhi\b|\bhey\b|\balo\b/,()=>L("Ờ… chào bạn. Tôi là Mr Biết Tuốt, cụ mèo nằm trên nóc thang máy. Hỏi gì tôi cũng trả lời (kể cả khi tôi không biết).","Oh… hello. I'm Mr Know-It-All, the old cat lying on the lift roof. Ask me anything, even if I don't know.")],
+   [/ban la ai|who are you|gioi thieu|mr biet tuot|know.it.all/,()=>L("Tôi là Mr Biết Tuốt, cụ mèo đen lười nhất và thông thái nhất văn phòng (tự phong). Tôi giải đáp về quy trình, các bé mèo, luật chơi và cách dùng game này.","I'm Mr Know-It-All, the laziest and wisest old black cat in the office (self-appointed). I answer questions about the workflow, the cats, the rules and how to use this game.")],
+   [/claude that|ai that|real ai|chatbot|that khong|co phai ai|thong minh|offline|ket noi/,()=>L("Thành thật nhé: tôi là bot chạy ngay trong trang, trả lời theo kịch bản có sẵn, chưa kết nối Claude thật. Câu nào ngoài sổ tay thì tôi chịu thua.","Honestly: I'm a bot running inside this page with scripted answers, not connected to a real Claude yet. Anything outside my notebook beats me.")],
+   [/quy trinh|workflow|hcph|cac buoc|tam buoc|\bflow\b|\bsteps?\b|lam sao de/,()=>L("Quy trình HCPH có 8 bước:\n","The HCPH flow has 8 steps:\n")+STEPS.map((st,i)=>`${i+1}. ${st.icon} ${T(st.name)} — ${st.who.name}`).join('\n')+L("\nMỗi bước một mèo ngồi vào bàn, xong thì chuyền vé cho bạn kế tiếp.","\nEach step has one cat at the desk, then the ticket is passed on.")],
+   [/push|deploy|quyen|xin phep|permission|\bmain\b|production|\bmr\b|\bluat\b|\brule/,()=>L("Luật vàng: không ai push, merge hay mở MR khi chưa được hỏi ý. Deploy chỉ vào DEV và phải có phép. Main/production thì mèo không bao giờ deploy; muốn tạo MR vào main thì phải hỏi sếp trước.","Golden rules: nobody pushes, merges or opens an MR unless asked. Deploy goes to DEV only, with permission. The cats never deploy main/production; an MR into main needs the boss's okay first.")],
+   [/cua|door|\bden\b|lamp|signal|tin hieu|\bdev\b|\buat\b|\bprod\b/,()=>L("Tầng 2 có 3 cửa: PROD (khoá, chỉ để trưng bày), DEV và UAT (không khoá, có đèn tín hiệu). Đèn xanh là rảnh, đèn vàng nhấp nháy là đang deploy. Tất cả chỉ là hình minh hoạ.","Floor 2 has 3 doors: PROD (locked, display only), DEV and UAT (unlocked, with signal lamps). Green is free, blinking amber means a deploy is running. It is all illustration.")],
+   [/cach choi|how to play|huong dan|\bhelp\b|dieu khien|dung game|bat dau|choi sao|nhiem vu|quest|yeu cau|request|\bbut\b|\bpen\b/,()=>L("Cách chơi: bấm cây bút ✒️ (cạnh nút nhật ký) để viết yêu cầu rồi Ký & gửi, cả đội sẽ chạy 8 bước. Bấm vào mèo để nghe chuyện (bấm dấu ? để xem hồ sơ), bấm đồ vật để mèo tới dùng. Lăn chuột hoặc chụm hai ngón để zoom, kéo để di chuyển.","How to play: tap the ✒️ pen (next to the log button) to write a request and sign it; the team runs the 8 steps. Tap a cat to chat (then ? for the profile), tap furniture and a cat will use it. Wheel or pinch to zoom, drag to pan.")],
+   [/zoom|phong to|thu nho|keo|di chuyen|pan\b/,()=>L("Lăn chuột hoặc chụm hai ngón để zoom, kéo để di chuyển, bấm ⌂ góc dưới trái để về khung ban đầu.","Wheel or pinch to zoom, drag to pan, tap ⌂ at the bottom-left to reset.")],
+   [/thoi tiet|weather|\bmua\b|tuyet|\bbao\b|\brain\b|\bsnow\b|\bstorm\b|gio\b|ngay dem|\btime\b|hoang hon|sunset/,()=>L("Bấm biểu tượng 🕒 để xem thử các buổi trong ngày, ⛅ để đổi thời tiết (nắng, mưa, tuyết, bão). Mặc định game theo giờ máy bạn, và mèo sẽ rủ nhau ra cửa sổ ngắm hoàng hôn, tuyết hay bão.","Tap 🕒 to preview times of day and ⛅ to change the weather (clear, rain, snow, storm). By default it follows your device clock, and the cats gather at the window for sunsets, snow and storms.")],
+   [/am thanh|\bnhac\b|sound|music|\bmute\b|\btieng\b.*(on|keu)|loa/,()=>L("Âm thanh và nhạc nền đều do trình duyệt tự tạo, không dùng file nào nên không dính bản quyền. Bấm 🔊 để tắt hoặc bật.","The sounds and music are synthesised by your browser, no files, so no copyright worries. Tap 🔊 to mute or unmute.")],
+   [/pantry|nuoc|\bkem\b|water|ice cream|giuong|\bbed\b|tru cao|do choi|noi that|furniture/,()=>L("Tầng 1 có pantry với máy nước và tủ kem sát tường sau. Bấm vào máy nước hay tủ kem, mèo gần nhất đang rảnh sẽ tới lấy. Trụ cào móng cũng vậy.","Floor 1 has a pantry with a water cooler and an ice-cream freezer by the back wall. Tap one and the nearest free cat goes to grab some. Scratching posts work the same way.")],
+   [/thang may|elevator|\blift\b|ket thang|nhay du|parachute/,()=>L("Thang máy kính nằm ngoài toà nhà, nối hai tầng. Mèo tầng 2 muốn ra bãi cát phải đi thang xuống. Đôi khi thang bị kẹt, và mèo sẽ nhảy dù ra ngoài. Còn tôi ngồi trên nóc nên không bao giờ kẹt!","The glass lift stands outside the building and links both floors. Cats upstairs ride it down to reach the beach. Sometimes it jams and the cat parachutes out. I sit on the roof, so I never get stuck!")],
+   [/ngon ngu|language|tieng viet|english|\bvi\b|\ben\b/,()=>L("Bấm nút VI/EN dưới biểu tượng thời tiết để đổi giữa tiếng Việt và tiếng Anh. Tiếng Việt là mặc định.","Tap the VI/EN button next to the weather icon to switch between Vietnamese and English. Vietnamese is the default.")],
+   [/dua|joke|cuoi|funny|\bvui\b|ke chuyen|hai huoc/,()=>{const j=JOKES[Math.floor(Math.random()*JOKES.length)];return L(j[0],j[1])}],
+   [/may gio|what time/,()=>L("Bây giờ là ","It is ")+new Date().toLocaleTimeString()],
+   [/cam on|thanks|thank|tuyet voi|gioi qua/,()=>L("Không có chi! Có gì cứ hỏi tôi, tôi biết tuốt mà (gần như vậy).","You're welcome! Ask me anything, I know it all (almost).")],
+   [/tam biet|bye|goodbye/,()=>L("Tạm biệt! Nhớ uống nước và ăn kem ở pantry nhé.","Bye! Remember to grab water and ice cream at the pantry.")]
+  ];
+  for(const [re,a] of I)if(re.test(q))return a();
+  return L("Hmm, câu này nằm ngoài sổ tay của tôi rồi. ","Hmm, that one is outside my notebook. ")+topic();
+}
+function buildSage(){
+  const Ht=FT+WALL+24+10,[sx,sy]=P(10.9,.95,Ht);
+  SAGE.at=[sx,sy-62];
+  // an old black cat lying on the lift roof, eyes half shut, tiny glasses slipped down his nose
+  const el=mk(`<g class="sage" id="sage" transform="translate(${sx.toFixed(1)} ${sy.toFixed(1)})"><ellipse cx="2" cy="3" rx="36" ry="7" fill="#2d1f10" opacity=".22"/><ellipse cx="-4" cy="-8" rx="44" ry="26" fill="transparent"/>`
+    +`<rect x="-36" y="-5" width="22" height="6" rx="1.5" fill="#e0457b"/><rect x="-36" y="-1.5" width="22" height="2" fill="#fff"/>`
+    +`<g style="transform-box:fill-box;transform-origin:50% 100%;animation:breathe 3.4s ease-in-out infinite"><ellipse cx="8" cy="-9" rx="27" ry="10" fill="#23232b"/><ellipse cx="6" cy="-15" rx="17" ry="3" fill="#3a3a46" opacity=".75"/><ellipse cx="20" cy="-6" rx="11" ry="8" fill="#2b2b35"/>`
+    +`<path d="M32 -3 Q46 2 36 9 Q25 13 13 6" fill="none" stroke="#23232b" stroke-width="6" stroke-linecap="round"/></g>`
+    +`<ellipse cx="-24" cy="-1" rx="8" ry="4" fill="#23232b"/><ellipse cx="-14" cy="0" rx="7" ry="3.5" fill="#2b2b35"/>`
+    +`<ellipse cx="-22" cy="-12" rx="14" ry="11" fill="#23232b"/><polygon points="-33,-19 -31,-31 -23,-22" fill="#23232b"/><polygon points="-18,-22 -12,-30 -9,-17" fill="#23232b"/><polygon points="-31,-21 -30,-27 -26,-23" fill="#6b4b57"/><polygon points="-16,-22 -13,-26 -11,-19" fill="#6b4b57"/>`
+    +`<ellipse cx="-22" cy="-6.5" rx="6" ry="3.6" fill="#6f6f7c" opacity=".8"/><polygon points="-23.6,-9 -20.4,-9 -22,-6.8" fill="#caa0ac"/>`
+    +`<g fill="none" stroke="#f2d65a" stroke-width="1.7" stroke-linecap="round"><path d="M-30 -13 q3 2.4 6 0"/><path d="M-20 -13 q3 2.4 6 0"/></g>`
+    +`<g fill="none" stroke="#d4a017" stroke-width="1.1"><circle cx="-27" cy="-11" r="4.4"/><circle cx="-17" cy="-11" r="4.4"/><path d="M-22.6 -11.5 q.6 -1 1.2 0"/></g>`
+    +`<g stroke="#d9dcea" stroke-width=".8" stroke-linecap="round"><path d="M-27 -6 l-12 -2 M-27 -5 l-12 2 M-17 -6 l12 -2 M-17 -5 l12 2"/></g>`
+    +`<path d="M-33 -25 L-22 -31 L-11 -25 L-22 -20Z" fill="#3b4a8a" transform="rotate(-8 -22 -25)"/><line x1="-12" y1="-25" x2="-10" y2="-17" stroke="#f2c230" stroke-width="1.4"/><circle cx="-10" cy="-16" r="1.8" fill="#f2c230"/>`
+    +`<text x="-6" y="-26" font-size="9" font-weight="700" fill="#fff" opacity=".85" style="animation:float 2.6s ease-in-out infinite">z</text><text x="2" y="-34" font-size="12" font-weight="700" fill="#fff" opacity=".85" style="animation:float 2.6s ease-in-out .5s infinite">Z</text></g>`);
+  $('tagsTop').before(el);
+  const tg=addTag(SAGE.name,0,0);tagItems.pop();tg.setAttribute('transform',`translate(${sx.toFixed(1)} ${(sy+13).toFixed(1)}) scale(.88)`);$('tagsTop').append(tg);
+  $('stage').insertAdjacentHTML('beforeend',`<div id="sagebox"><header><span>🎓 ${SAGE.name}</span><button id="sagex" type="button" aria-label="${T('Close')}">✕</button></header><div id="sagemsgs"></div><div id="sagechips"></div><form id="sageform" autocomplete="off"><input id="sagein" maxlength="160" placeholder="${T('Ask Mr Biết Tuốt…')}"><button type="submit">${T('Send')}</button></form></div>`);
+  const msgs=$('sagemsgs'),add=(t,who)=>{const d=document.createElement('div');d.className='sm '+who;d.textContent=t;msgs.append(d);msgs.scrollTop=msgs.scrollHeight;return d};
+  const ask=t=>{t=t.trim();if(!t)return;UIEV('sage');add(t,'me');const dots=add('…','bot');
+    setTimeout(()=>{dots.textContent=sageAnswer(t);msgs.scrollTop=msgs.scrollHeight;SND.play('pop')},350+Math.random()*350)};
+  const chips=L(["Quy trình HCPH?","Ai làm bước nào?","Luật push/deploy?","Cách chơi?","Kể chuyện cười"],["The HCPH flow?","Who does what?","Push/deploy rules?","How to play?","Tell a joke"]);
+  $('sagechips').innerHTML=chips.map((c,i)=>`<button type="button" data-q="${['quy trinh','ai lam buoc nao','luat push deploy','cach choi','ke chuyen cuoi'][i]}">${c}</button>`).join('');
+  $('sagechips').onclick=e=>{const b=e.target.closest('button');if(b)ask(b.dataset.q)};
+  $('sageform').onsubmit=e=>{e.preventDefault();const i=$('sagein');ask(i.value);i.value=''};
+  const open=()=>{SAGE.open=true;$('sagebox').classList.add('on');if(!msgs.childElementCount)add(L("Hmm? À… chào bạn. Tôi là Mr Biết Tuốt, cụ mèo già đang nằm nghỉ. Hỏi tôi về quy trình, các bé mèo hay cách chơi nhé. Chạm vào gợi ý bên dưới cũng được.","Hmm? Oh… hello. I'm Mr Know-It-All, an old cat having a lie-down. Ask me about the workflow, the cats or how to play. You can also tap a suggestion below."),'bot');
+    speak('sage',L("Hmm? Ờ… hỏi đi, từ từ thôi.","Hmm? Oh… ask away, slowly."),2200)};
+  const close=()=>{SAGE.open=false;$('sagebox').classList.remove('on')};
+  el.addEventListener('click',e=>{e.stopPropagation();SAGE.open?close():open()});
+  $('sagex').onclick=close;
+  $('sagein').addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+}
+buildScene();buildSteps();buildActors();initClicks();buildSage();
+/* ---------- Time of day (from the device clock) ---------- */
+const PHASES={
+  morning:{n:'🌅 Morning',sk:['#a6dcf5','#ffe6c4'],se:['#c4f4dd','#45c0cc'],sun:[150,10],sc:'#ffe39a',sg:'#ffe9b0',cl:'#fff',tint:['#ffd9b0',.12]},
+  noon:{n:'☀️ Noon',sk:['#8fd6f4','#fff1d8'],se:['#b4f1e4','#31bccf'],sun:[760,-30],sc:'#fff4a0',sg:'#fff6b8',cl:'#fff',tint:['#fff',0]},
+  sunset:{n:'🌇 Sunset',sk:['#5d5fb8','#ffb067'],se:['#ff9f7c','#5a6bb0'],sun:[860,60],sc:'#fff0a8',sg:'#ff9a5a',cl:'#ffc9a8',tint:['#ffa878',.3]},
+  night:{n:'🌙 Night',sk:['#0a1840','#2f4488'],se:['#26427c','#0a1a3e'],sun:[850,-35],sc:'#f4f1d6',sg:'#cfd8ff',cl:'#7c8ab8',tint:['#5868b4',.42]}
+};
+const phaseOf=h=>h>=5&&h<9?'morning':h>=9&&h<16?'noon':h>=16&&h<19?'sunset':'night';
+let phaseOverride=null;
+function applyTime(){
+  const key=phaseOverride||phaseOf(new Date().getHours()),p=PHASES[key],night=key==='night';
+  $('sk0').setAttribute('stop-color',p.sk[0]);$('sk1').setAttribute('stop-color',p.sk[1]);
+  $('se0').setAttribute('stop-color',p.se[0]);$('se1').setAttribute('stop-color',p.se[1]);
+  $('sg0').setAttribute('stop-color',p.sg);$('sg1').setAttribute('stop-color',p.sg);
+  $('sunG').setAttribute('transform',`translate(${p.sun[0]} ${p.sun[1]})`);
+  $('sunD').style.display=night?'none':'';$('moonD').style.display=night?'':'none';
+  $('sunD').setAttribute('fill',p.sc);$('stars').style.display=night?'':'none';
+  document.querySelectorAll('.cloud > g').forEach(g=>g.setAttribute('fill',p.cl));
+  document.querySelectorAll('.gull').forEach(g=>g.style.display=night?'none':'');
+  const w=WX[weather],bad=weather!=='sunny';
+  $('sunG').style.display=bad?'none':'';$('stars').style.display=night&&!bad?'':'none';
+  if(bad)document.querySelectorAll('.cloud > g').forEach(g=>g.setAttribute('fill',night?'#3a4260':w.cl));
+  $('wxdim').setAttribute('fill',w.dim[0]);$('wxdim').setAttribute('opacity',w.dim[1]);
+  const t=$('tint');t.setAttribute('fill',p.tint[0]);t.setAttribute('opacity',Math.min(.6,p.tint[1]+(bad?.08:0)));
+  scene.style.setProperty('--beam',weather==='sunny'?{morning:.18,noon:.22,sunset:.26,night:0}[key]:.04);scene.style.setProperty('--beamc',key==='sunset'?'#ffb27a':'#fff3c4');
+  $('clock').textContent=p.n.split(' ')[0];$('clock').title=T('Time: {0}',T(p.n.replace(/^\S+\s*/,'')))+' '+(phaseOverride?T('(preview)'):T('(device clock)'))+' — '+T('click to change');$('clock').classList.toggle('pv',!!phaseOverride);
+}
+$('clock').onclick=e=>{e.stopPropagation();const ks=['auto',...Object.keys(PHASES)];
+  const i=ks.indexOf(phaseOverride||'auto');const n=ks[(i+1)%ks.length];phaseOverride=n==='auto'?null:n;applyTime()};
+applyTime();setInterval(applyTime,60000);
+setInterval(chatTick,4200);setInterval(watchTick,3000);setInterval(wxDrift,20000);setInterval(lightning,4500);applyWeather();
+setInterval(idleTick,2600);setInterval(fidgetTick,2300);setInterval(outingTick,3000);setInterval(beachTick,3500);
+log('Welcome to the Cat Beach Office! Tap the ✒️ pen to write a request, or click a cat to meet them.');
+</script>
+<script src="ui2.js"></script>
+<script src="playbook.js"></script>
+<script src="worldmap.js"></script>
+<script src="live.js"></script>
+</body>
+</html>
